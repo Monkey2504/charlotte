@@ -11,7 +11,8 @@ const STORAGE_KEYS = {
   HISTORY: 'charlotte_search_history',
   PROFILE_DRAFT: 'charlotte_current_profile_draft',
   ADMIN_LOGS: 'charlotte_admin_logs',
-  ENRICHMENT_CACHE: 'charlotte_enrichment_cache'
+  ENRICHMENT_CACHE: 'charlotte_enrichment_cache',
+  IS_ADMIN: 'charlotte_is_admin'
 };
 
 export const persistenceService = {
@@ -71,7 +72,6 @@ export const persistenceService = {
   },
 
   // --- ENRICHMENT CACHE ---
-  // Convertit la Map en Objet pour le stockage JSON
   async getEnrichmentCache(): Promise<Map<string, Partial<ASBLProfile>>> {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.ENRICHMENT_CACHE);
@@ -89,6 +89,23 @@ export const persistenceService = {
       localStorage.setItem(STORAGE_KEYS.ENRICHMENT_CACHE, JSON.stringify(obj));
     } catch (e) {
       console.error("Persistence Write Error (Cache)", e);
+    }
+  },
+
+  // --- CONFIG / STATE ---
+  async getIsAdmin(): Promise<boolean> {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.IS_ADMIN) === 'true';
+    } catch (e) {
+      return false;
+    }
+  },
+
+  async saveIsAdmin(isAdmin: boolean): Promise<void> {
+    try {
+      localStorage.setItem(STORAGE_KEYS.IS_ADMIN, String(isAdmin));
+    } catch (e) {
+      console.error("Persistence Write Error (IsAdmin)", e);
     }
   }
 };

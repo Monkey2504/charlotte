@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { HistoryItem, SearchResult, ASBLProfile, Sector } from '../types';
 import { historyService, generateUUID } from '../services/historyService';
@@ -45,9 +46,9 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setCurrentProfile({ ...DEFAULT_PROFILE, ...storedProfile });
       }
 
-      // 3. Load Admin Status (Using simple localStorage for config flags)
-      const adminStatus = localStorage.getItem('charlotte_is_admin');
-      if (adminStatus === 'true') {
+      // 3. Load Admin Status (Via Persistence Service)
+      const storedAdminStatus = await persistenceService.getIsAdmin();
+      if (storedAdminStatus) {
         setIsAdmin(true);
       }
     };
@@ -87,7 +88,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const enableAdmin = () => {
     setIsAdmin(true);
-    localStorage.setItem('charlotte_is_admin', 'true');
+    persistenceService.saveIsAdmin(true);
   };
 
   return (
