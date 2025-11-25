@@ -11,21 +11,29 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'nav.history': 'Mes souvenirs',
     'nav.admin': 'Mode Admin',
     'nav.association': 'Association',
-    'nav.connected': 'Connectée',
+    'nav.connected': 'Connecté·e',
     
     'form.title': 'Parle-moi de ton projet',
-    'form.subtitle': 'Pour que je puisse t\'aider efficacement, j\'ai besoin de mieux te connaître. Plus tu es précise, plus mes trouvailles seront pertinentes !',
-    'form.identity_label': 'On commence par ton numéro BCE ou ton nom ?',
+    'form.subtitle': 'Pour que je puisse t\'aider efficacement, j\'ai besoin de mieux te connaître. Plus tu es précis·e, plus mes trouvailles seront pertinentes !',
+    
+    // NOUVEAUX CHAMPS DE QUALIFICATION
+    'form.type_entity': 'Structure existante (ASBL/Entreprise)',
+    'form.type_individual': 'Porteur·se de projet / Particulier',
+    'form.individual_warning': '⚠️ Attention : Charlotte est optimisée pour les structures enregistrées. Pour un·e particulier·ère, les aides trouvées seront plus limitées.',
+    
+    'form.identity_label_entity': 'Numéro d\'entreprise (BCE) ou Nom officiel',
+    'form.identity_label_individual': 'Ton Nom et Prénom',
+    
     'form.autofill_btn': 'Laisse Charlotte chercher',
     'form.autofill_hint': 'Clique sur l\'étincelle et je remplis le reste toute seule !',
     'form.autofill_error': 'Je n\'ai pas réussi à trouver ta structure, désolée.',
     'form.autofill_empty': 'Donne-moi un petit indice (nom ou numéro) !',
     'form.name_label': 'Quel est le nom officiel ?',
-    'form.website_label': 'Votre site web',
-    'form.region_label': 'Où est votre siège ?',
-    'form.sector_label': 'Quel est votre secteur ?',
+    'form.website_label': 'Ton site web',
+    'form.region_label': 'Où est ton siège ?',
+    'form.sector_label': 'Quel est ton secteur ?',
     'form.budget_label': 'Une idée du budget annuel ?',
-    'form.desc_label': 'DIS-MOI TOUT SUR VOTRE MISSION',
+    'form.desc_label': 'DIS-MOI TOUT SUR TA MISSION',
     'form.desc_placeholder': 'Que faites-vous concrètement ? Qui aidez-vous ? Quels sont vos projets actuels qui ont besoin de financement ?',
     'form.submit': 'C\'est parti Charlotte, cherche pour moi !',
     'form.wait': 'Attends un peu...',
@@ -52,7 +60,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.summary_title': 'Mon résumé pour toi',
     'results.advice_title': 'Mon conseil d\'amie',
     'results.sources_title': 'Où j\'ai trouvé ça',
-    'results.sources_empty': 'Je n\'ai pas de lien direct, mais Google est ton ami aussi !',
+    'results.sources_empty': 'Je n\'ai pas de lien direct, mais Google est aussi ton allié !',
     'results.disclaimer': 'Je fais de mon mieux pour t\'aider, mais vérifie toujours les détails officiels, d\'accord ?',
     'results.card_deadline': 'Deadline :',
     'results.card_details': 'Détails',
@@ -67,7 +75,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'history.opportunities': 'opportunités',
     'history.sources': 'sources',
     'history.others': 'autres',
-    'history.admin_mode': 'Mode Administrateur Actif',
+    'history.admin_mode': 'Mode Administrateur·rice Actif',
   },
   nl: {
     'app.title': 'Charlotte AI',
@@ -80,7 +88,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'form.title': 'Vertel me over je project',
     'form.subtitle': 'Om je goed te kunnen helpen, moet ik je beter leren kennen. Hoe preciezer je bent, hoe relevanter mijn vondsten!',
-    'form.identity_label': 'Beginnen we met je KBO-nummer of naam?',
+    
+    'form.type_entity': 'Bestaande structuur (VZW/Bedrijf)',
+    'form.type_individual': 'Projectdrager / Particulier',
+    'form.individual_warning': '⚠️ Let op: Charlotte is geoptimaliseerd voor geregistreerde structuren. Voor particulieren zijn de resultaten beperkter.',
+    'form.identity_label_entity': 'Ondernemingsnummer (KBO) of officiële naam',
+    'form.identity_label_individual': 'Je naam en voornaam',
+
     'form.autofill_btn': 'Laat Charlotte zoeken',
     'form.autofill_hint': 'Klik op de vonk en ik vul de rest zelf in!',
     'form.autofill_error': 'Ik heb je structuur helaas niet kunnen vinden.',
@@ -145,7 +159,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'form.title': 'Erzähl mir von deinem Projekt',
     'form.subtitle': 'Um dir effektiv helfen zu können, muss ich dich besser kennenlernen. Je genauer du bist, desto relevanter meine Funde!',
-    'form.identity_label': 'Beginnen wir mit deiner Nummer oder deinem Namen?',
+    
+    'form.type_entity': 'Bestehende Struktur (Vb/Unternehmen)',
+    'form.type_individual': 'Projektträger / Einzelperson',
+    'form.individual_warning': '⚠️ Achtung: Charlotte ist für registrierte Strukturen optimiert. Für Einzelpersonen sind die Ergebnisse begrenzter.',
+    'form.identity_label_entity': 'Unternehmensnummer (ZDE) oder offizieller Name',
+    'form.identity_label_individual': 'Dein Vor- und Nachname',
+
     'form.autofill_btn': 'Lass Charlotte suchen',
     'form.autofill_hint': 'Klick auf den Funken und ich fülle den Rest alleine aus!',
     'form.autofill_error': 'Ich konnte deine Struktur leider nicht finden.',
@@ -210,7 +230,13 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'form.title': 'أخبريني عن مشروعك',
     'form.subtitle': 'لكي أساعدك بفعالية، أحتاج لمعرفتك بشكل أفضل. كلما كنتِ دقيقة، كانت النتائج أكثر صلة!',
-    'form.identity_label': 'نبدأ برقم المؤسسة أو الاسم؟',
+    
+    'form.type_entity': 'هيكل قائم (جمعية/شركة)',
+    'form.type_individual': 'حامل المشروع / فرد',
+    'form.individual_warning': '⚠️ تنبيه: تم تحسين شارلوت للهياكل المسجلة. بالنسبة للأفراد، قد تكون النتائج محدودة.',
+    'form.identity_label_entity': 'رقم المؤسسة أو الاسم الرسمي',
+    'form.identity_label_individual': 'اسمك الكامل',
+
     'form.autofill_btn': 'دعي شارلوت تبحث',
     'form.autofill_hint': 'اضغطي على الشرارة وسأملأ الباقي بنفسي!',
     'form.autofill_error': 'لم أتمكن من العثور على مؤسستك، آسفة.',

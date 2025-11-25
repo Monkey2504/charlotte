@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ASBLProfile, Sector } from '../types';
 import { enrichProfileFromNumber } from '../services/geminiService';
 import { Button, Input, Select, Card, TextArea } from './ui/DesignSystem';
-import { Search, Sparkles, Globe, MapPin, Building2, Wallet } from 'lucide-react';
+import { Search, Sparkles, Globe, MapPin, Building2, Wallet, AlertCircle } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -13,11 +13,16 @@ interface ProfileFormProps {
 
 const COOLDOWN_SECONDS = 30;
 
+type UserType = 'entity' | 'individual';
+
 const ProfileForm: React.FC<ProfileFormProps> = ({ onSearch, isLoading }) => {
   const { currentProfile, updateCurrentProfile } = useApp();
   const { t, language } = useLanguage();
   const [isEnriching, setIsEnriching] = useState(false);
   const [enrichError, setEnrichError] = useState<string | null>(null);
+  
+  // Nouvel état pour le type d'utilisateur
+  const [userType, setUserType] = useState<UserType>('entity');
   
   const [cooldown, setCooldown] = useState(0);
 
@@ -65,6 +70,12 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSearch, isLoading }) => {
     onSearch(currentProfile);
   };
 
+  const handleUserTypeChange = (type: UserType) => {
+    setUserType(type);
+    // On nettoie le champ identité si on change de type pour éviter les confusions
+    handleChange('enterpriseNumber', '');
+  };
+
   return (
     <Card className="border-t-4 border-t-violet-500 shadow-md">
       <div className="mb-6">
@@ -76,6 +87,32 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSearch, isLoading }) => {
           {t('form.subtitle')}
         </p>
       </div>
+
+      {/* SÉLECTEUR DE TYPE D'UTILISATEUR (Toggle) */}
+      <div className="bg-slate-100 p-1 rounded-xl flex mb-6">
+         <button 
+           type="button"
+           onClick={() => handleUserTypeChange('entity')}
+           className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 ${userType === 'entity' ? 'bg-white shadow-sm text-violet-700' : 'text-slate-500 hover:text-slate-700'}`}
+         >
+           {t('form.type_entity')}
+         </button>
+         <button 
+           type="button"
+           onClick={() => handleUserTypeChange('individual')}
+           className={`flex-1 py-2 px-3 rounded-lg text-xs font-medium transition-all duration-200 ${userType === 'individual' ? 'bg-white shadow-sm text-violet-700' : 'text-slate-500 hover:text-slate-700'}`}
+         >
+           {t('form.type_individual')}
+         </button>
+      </div>
+
+      {/* Warning pour les particuliers */}
+      {userType === 'individual' && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex gap-3 text-xs text-amber-800 mb-6 animate-fade-in">
+           <AlertCircle size={16} className="shrink-0 mt-0.5" />
+           <p>{t('form.individual_warning')}</p>
+        </div>
+      )}
       
       <form onSubmit={handleSubmit} className="space-y-5">
         
@@ -83,35 +120,40 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSearch, isLoading }) => {
         <div className="bg-violet-50/50 p-4 rounded-xl border border-violet-100 space-y-2">
            <div className="flex items-end gap-2">
               <Input 
-                label={t('form.identity_label')}
-                placeholder="0456.789.123"
+                label={userType === 'entity' ? t('form.identity_label_entity') : t('form.identity_label_individual')}
+                placeholder={userType === 'entity' ? "0456.789.123" : "Prénom Nom"}
                 value={currentProfile.enterpriseNumber || ''}
                 onChange={(e) => handleChange('enterpriseNumber', e.target.value)}
                 error={enrichError || undefined}
                 className="bg-white"
               />
-              <Button 
-                type="button" 
-                variant="secondary" 
-                onClick={handleAutoFill}
-                isLoading={isEnriching}
-                disabled={cooldown > 0}
-                title={cooldown > 0 ? `${t('form.cooldown')} ${cooldown}s` : t('form.autofill_btn')}
-                className={`mb-[1px] border-violet-200 transition-colors w-14 flex justify-center ${cooldown > 0 ? 'bg-slate-100 text-slate-400' : 'text-violet-700 hover:bg-violet-100'}`}
-              >
-                {isEnriching ? (
-                   <span className="opacity-0">.</span>
-                ) : cooldown > 0 ? (
-                   <span className="text-xs font-bold font-mono">{cooldown}</span>
-                ) : (
-                   <Sparkles size={18} className="text-violet-600" />
-                )}
-              </Button>
+              {/* Le bouton Auto-fill n'est pertinent que pour les entités légales (Web search sur BCE) */}
+              {userType === 'entity' && (
+                <Button 
+                  type="button" 
+                  variant="secondary" 
+                  onClick={handleAutoFill}
+                  isLoading={isEnriching}
+                  disabled={cooldown > 0}
+                  title={cooldown > 0 ? `${t('form.cooldown')} ${cooldown}s` : t('form.autofill_btn')}
+                  className={`mb-[1px] border-violet-200 transition-colors w-14 flex justify-center ${cooldown > 0 ? 'bg-slate-100 text-slate-400' : 'text-violet-700 hover:bg-violet-100'}`}
+                >
+                  {isEnriching ? (
+                    <span className="opacity-0">.</span>
+                  ) : cooldown > 0 ? (
+                    <span className="text-xs font-bold font-mono">{cooldown}</span>
+                  ) : (
+                    <Sparkles size={18} className="text-violet-600" />
+                  )}
+                </Button>
+              )}
            </div>
-           <p className="text-[11px] text-slate-500 flex items-start gap-1.5 pl-1">
-             <Sparkles size={12} className="text-violet-500 shrink-0 mt-0.5"/>
-             <span>{t('form.autofill_hint')}</span>
-           </p>
+           {userType === 'entity' && (
+             <p className="text-[11px] text-slate-500 flex items-start gap-1.5 pl-1">
+               <Sparkles size={12} className="text-violet-500 shrink-0 mt-0.5"/>
+               <span>{t('form.autofill_hint')}</span>
+             </p>
+           )}
         </div>
 
         <Input 
