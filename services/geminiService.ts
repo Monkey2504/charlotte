@@ -192,17 +192,22 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string, language
 
   const validSectors = Object.values(Sector).join(', ');
 
+  // PROMPT RENFORCÉ POUR LE CONTEXTE BELGE
   const prompt = `
-    Trouve les infos pour : "${enterpriseNumber}".
-    Cherche site web et réseaux sociaux.
+    ROLE: Analyste de données d'entreprises belges (BCE/KBO).
+    TACHE: Identifier l'ASBL, l'Association ou l'Entreprise correspondant à l'identifiant : "${enterpriseNumber}".
     
-    Réponds UNIQUEMENT JSON :
+    ACTIONS DE RECHERCHE OBLIGATOIRES :
+    1. Utiliser Google Search pour rechercher ce numéro ou ce nom spécifiquement dans le contexte belge ("BCE Public Search", "Moniteur Belge", "Staatsblad").
+    2. Identifier le site web officiel ou la page Facebook officielle.
+    
+    FORMAT DE REPONSE (JSON STRICT, pas de markdown, pas de texte avant/après) :
     {
-      "name": "Nom officiel",
-      "website": "URL",
-      "region": "Région",
-      "description": "Description de la mission en ${language}.",
-      "sector": "Choisis EXACTEMENT une valeur de cette liste : ${validSectors}"
+      "name": "Nom officiel complet (Dénomination)",
+      "website": "https://...",
+      "region": "Région du siège social (Bruxelles, Wallonie, Flandre)",
+      "description": "Courte description des activités sociales ou commerciales en ${language}",
+      "sector": "La valeur la plus proche de cette liste exacte : ${validSectors}"
     }
   `;
 
@@ -234,6 +239,6 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string, language
 
   } catch (error) {
     console.error("Enrichment Error:", error);
-    throw new Error("Impossible de trouver ces informations.");
+    throw new Error("Impossible de trouver ces informations. Vérifiez le numéro ou remplissez manuellement.");
   }
 };
