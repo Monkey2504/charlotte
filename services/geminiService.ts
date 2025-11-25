@@ -3,21 +3,53 @@ import { ASBLProfile, SearchResult, Sector, Language } from "../types";
 import { CONFIG, getApiKey } from "../config";
 import { persistenceService } from "./persistence";
 
+/**
+ * Robust JSON extraction.
+ * Handles cases where the LLM wraps JSON in Markdown or adds conversational filler.
+ */
 const cleanAndParseJson = (text: string) => {
   try {
     let cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    // Locate the outer JSON object boundaries
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
+    
     if (firstBrace !== -1 && lastBrace !== -1) {
       cleaned = cleaned.substring(firstBrace, lastBrace + 1);
     } else {
-      throw new Error("Aucune structure JSON trouvée");
+      throw new Error("No JSON structure found in response");
     }
+    
     return JSON.parse(cleaned);
   } catch (e) {
-    console.error("JSON Parse Error on text:", text);
-    throw new Error("Oups, je n'ai pas réussi à lire ma propre réponse. Peux-tu réessayer ?");
+    console.error("JSON Parse Error. Raw text received:", text);
+    throw new Error("Oups, je n'ai pas réussi à lire ma propre réponse. (Erreur de format)");
   }
+};
+
+/**
+ * DATA SANITIZATION LAYER
+ * Never trust the LLM output blindly. This function ensures the object shape 
+ * matches the TypeScript interface exactly, preventing UI crashes.
+ */
+const normalizeSearchResult = (raw: any, profileName: string): SearchResult => {
+  return {
+    executiveSummary: typeof raw.executiveSummary === 'string' ? raw.executiveSummary : "Analyse terminée (Résumé non disponible).",
+    opportunities: Array.isArray(raw.opportunities) ? raw.opportunities.map((opp: any) => ({
+      title: opp.title || "Opportunité sans titre",
+      provider: opp.provider || "Inconnu",
+      deadline: opp.deadline || "Voir détails",
+      deadlineDate: opp.deadlineDate || "2099-12-31",
+      relevanceScore: typeof opp.relevanceScore === 'number' ? opp.relevanceScore : 50,
+      relevanceReason: opp.relevanceReason || "Potentiellement intéressant.",
+      type: opp.type || "Autre",
+      url: opp.url
+    })) : [],
+    strategicAdvice: typeof raw.strategicAdvice === 'string' ? raw.strategicAdvice : "Consultez les sources pour plus de détails.",
+    sources: [], // Sources are injected from Grounding Metadata, not the JSON body
+    timestamp: new Date().toISOString(),
+    profileName: raw.profileName || profileName,
+  };
 };
 
 export const searchGrants = async (profile: ASBLProfile, language: Language = 'fr'): Promise<SearchResult> => {
@@ -26,52 +58,49 @@ export const searchGrants = async (profile: ASBLProfile, language: Language = 'f
 
   // Translation instructions for the persona
   const langInstructions = {
-    fr: "Tu réponds en Français.",
-    nl: "Je antwoordt in het Nederlands. (Tu réponds en Néerlandais).",
-    de: "Du antwortest auf Deutsch. (Tu réponds en Allemand).",
-    ar: "أنت تجيب باللغة العربية. (Tu réponds en Arabe)."
+    fr: "Tu réponds STRICTEMENT en Français.",
+    nl: "Je antwoordt STRICT in het Nederlands.",
+    de: "Du antwortest STRENG auf Deutsch.",
+    ar: "أنت تجيبين باللغة العربية الفصحى حصراً."
   };
 
   const prompt = `
     PERSONA :
     Tu es Charlotte, une experte en financement pour ASBL, amicale, enthousiaste et très compétente.
-    Tu t'adresses toujours à l'utilisateur à la première personne du singulier ("Je" / "Ik" / "Ich" / "أنا").
-    Tu tutoies l'utilisateur avec bienveillance.
+    Tu t'adresses toujours à l'utilisateur à la première personne du singulier ("Je").
     
     LANGUE OBLIGATOIRE :
     ${langInstructions[language]}
-    Il est impératif de traduire TOUT le contenu généré (champs JSON) dans cette langue, tout en gardant le ton amical.
+    Il est IMPÉRATIF de traduire TOUT le contenu textuel généré.
 
-    TA MISSION POUR CE DOSSIER :
-    Je dois réaliser un audit complet des opportunités de financement pour l'association suivante :
+    TA MISSION :
+    Audit complet des financements pour :
     - Nom : ${profile.name}
     - Secteur : ${profile.sector}
     - Région : ${profile.region}
     - Mission : ${profile.description}
     - Budget : ${profile.budget}
 
-    MA STRATÉGIE DE RECHERCHE :
-    1. **Je cherche partout :** Local, Régional, Fédéral, Européen.
-    2. **Je vérifie la fiabilité :** Sources officielles prioritaires.
-    3. **Je filtre intelligemment.**
-    4. **Je vérifie les dates.**
+    STRATÉGIE :
+    1. Scan large (Local -> Européen).
+    2. Sources officielles prioritaires.
+    3. Filtrage strict sur la mission.
 
-    FORMAT DE MA RÉPONSE (JSON uniquement) :
-    Réponds UNIQUEMENT avec un objet JSON valide :
+    FORMAT DE RÉPONSE (JSON ONLY) :
     {
-      "executiveSummary": "Résumé sympa des trouvailles dans la langue cible.",
+      "executiveSummary": "Résumé dans la langue cible.",
       "opportunities": [
         {
-          "title": "Titre du financement",
+          "title": "Titre",
           "provider": "Organisme",
           "deadline": "Date affichée (traduite)",
-          "deadlineDate": "YYYY-MM-DD (ISO Fixe, ne pas traduire)",
+          "deadlineDate": "YYYY-MM-DD (ISO)",
           "relevanceScore": 85,
-          "relevanceReason": "Pourquoi c'est pertinent (Expliqué dans la langue cible)",
-          "type": "Subvention/Appel à projets/..."
+          "relevanceReason": "Justification (langue cible)",
+          "type": "Type"
         }
       ],
-      "strategicAdvice": "Conseil stratégique dans la langue cible.",
+      "strategicAdvice": "Conseil (langue cible).",
       "profileName": "${profile.name}"
     }
   `;
@@ -82,44 +111,49 @@ export const searchGrants = async (profile: ASBLProfile, language: Language = 'f
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
-        temperature: 0.4,
+        temperature: 0.4, 
+        // Note: responseMimeType omitted intentionally for Google Search compatibility
       },
     });
 
     const text = response.text;
-    if (!text) throw new Error("Je suis restée sans voix...");
+    if (!text) throw new Error("Réponse vide de l'IA");
 
-    const parsedData = cleanAndParseJson(text);
+    const parsedRawData = cleanAndParseJson(text);
+    
+    // Sanitize data before returning
+    const sanitizedResult = normalizeSearchResult(parsedRawData, profile.name);
+
+    // Inject Grounding Metadata safely
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    sanitizedResult.sources = groundingChunks;
 
-    return {
-      executiveSummary: parsedData.executiveSummary || "Analyse terminée.",
-      opportunities: parsedData.opportunities || [],
-      strategicAdvice: parsedData.strategicAdvice || "Voir liens.",
-      sources: groundingChunks,
-      timestamp: new Date().toISOString(),
-      profileName: parsedData.profileName || profile.name,
-    };
+    return sanitizedResult;
 
   } catch (error) {
-    console.error("Gemini Service Error:", error);
-    throw new Error("Erreur technique / Technische fout / Technical error / خطأ فني");
+    console.error("Gemini Service Critical Failure:", error);
+    // Rethrow with a user-friendly message, but keep the log for admins
+    throw new Error("Erreur technique lors de l'analyse. Veuillez réessayer.");
   }
 };
 
 export const enrichProfileFromNumber = async (enterpriseNumber: string, language: Language = 'fr'): Promise<Partial<ASBLProfile>> => {
   const cacheKey = enterpriseNumber.trim().toLowerCase();
-  const cacheMap = await persistenceService.getEnrichmentCache();
   
-  if (cacheMap.has(cacheKey)) {
-    return cacheMap.get(cacheKey)!;
+  try {
+    const cacheMap = await persistenceService.getEnrichmentCache();
+    if (cacheMap.has(cacheKey)) {
+      return cacheMap.get(cacheKey)!;
+    }
+  } catch (e) {
+    console.warn("Cache read failed, proceeding without cache.");
   }
 
   const apiKey = getApiKey();
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
-    Trouve les infos pour le numéro/nom : "${enterpriseNumber}".
+    Trouve les infos pour : "${enterpriseNumber}".
     Cherche site web et réseaux sociaux.
     
     Réponds UNIQUEMENT JSON :
@@ -127,8 +161,8 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string, language
       "name": "Nom officiel",
       "website": "URL",
       "region": "Région",
-      "description": "Description de la mission en ${language} (Français/Néerlandais/Allemand/Arabe selon code).",
-      "sector": "Le secteur le plus proche parmi la liste fournie (Traduire si nécessaire)."
+      "description": "Description de la mission en ${language}.",
+      "sector": "Un des secteurs de la liste fournie."
     }
   `;
 
@@ -146,13 +180,20 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string, language
     if (!text) throw new Error("Réponse vide");
     
     const result = cleanAndParseJson(text);
-    cacheMap.set(cacheKey, result);
-    await persistenceService.saveEnrichmentCache(cacheMap);
+    
+    // Attempt to save to cache, but don't block if it fails
+    try {
+      const cacheMap = await persistenceService.getEnrichmentCache();
+      cacheMap.set(cacheKey, result);
+      await persistenceService.saveEnrichmentCache(cacheMap);
+    } catch (e) {
+      console.warn("Cache write failed");
+    }
 
     return result;
 
   } catch (error) {
     console.error("Enrichment Error:", error);
-    throw new Error("Introuvable / Niet gevonden");
+    throw new Error("Impossible de trouver ces informations.");
   }
 };

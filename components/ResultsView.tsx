@@ -78,14 +78,25 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
     );
   }
 
-  const dateStr = new Date(result.timestamp).toLocaleDateString();
+  // Safe fallback for timestamp
+  const timestamp = result.timestamp ? new Date(result.timestamp) : new Date();
+  const dateStr = timestamp.toLocaleDateString();
 
-  const sortedOpportunities = [...result.opportunities].sort((a, b) => {
-     if (sortBy === 'relevance') return b.relevanceScore - a.relevanceScore;
+  // Defensive copy and sort
+  const opportunities = result.opportunities || [];
+  const sortedOpportunities = [...opportunities].sort((a, b) => {
+     if (sortBy === 'relevance') {
+       return (b.relevanceScore || 0) - (a.relevanceScore || 0);
+     }
      
-     const dateA = a.deadlineDate ? new Date(a.deadlineDate).getTime() : new Date('2099-12-31').getTime();
-     const dateB = b.deadlineDate ? new Date(b.deadlineDate).getTime() : new Date('2099-12-31').getTime();
-     return dateA - dateB;
+     // Robust Date Parsing
+     const getTime = (isoDate?: string) => {
+       if (!isoDate) return 4102444800000; // 2099-12-31 fallback for unknown dates
+       const t = new Date(isoDate).getTime();
+       return isNaN(t) ? 4102444800000 : t;
+     };
+
+     return getTime(a.deadlineDate) - getTime(b.deadlineDate);
   });
 
   return (
@@ -96,7 +107,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
         <div>
            <div className="flex items-center gap-3 mb-1">
              <h2 className="text-2xl font-bold text-slate-800">{t('results.found_title')}</h2>
-             <Badge variant="success">{result.opportunities.length} {t('results.found_pistes')}</Badge>
+             <Badge variant="success">{opportunities.length} {t('results.found_pistes')}</Badge>
            </div>
            <p className="text-sm text-slate-500 flex items-center gap-2">
              <Calendar size={14} />
@@ -138,9 +149,15 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
         
         {/* Main List */}
         <div className="xl:col-span-2 space-y-4">
-           {sortedOpportunities.map((opp, idx) => (
-             <OpportunityCard key={idx} data={opp} t={t} />
-           ))}
+           {sortedOpportunities.length > 0 ? (
+             sortedOpportunities.map((opp, idx) => (
+               <OpportunityCard key={idx} data={opp} t={t} />
+             ))
+           ) : (
+             <div className="text-center p-8 bg-slate-50 rounded-xl text-slate-400 italic">
+               Aucune opportunité trouvée. Réessayez avec une description plus large.
+             </div>
+           )}
         </div>
 
         {/* Sidebar */}
@@ -155,7 +172,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
           {/* Sources */}
           <Card title={<div className="flex items-center gap-2"><Globe size={18} className="text-violet-600"/> {t('results.sources_title')}</div>}>
              <div className="space-y-3">
-              {result.sources.length > 0 ? (
+              {result.sources && result.sources.length > 0 ? (
                 result.sources.map((source, idx) => (
                   source.web?.uri && (
                     <a
@@ -196,7 +213,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
 };
 
 const OpportunityCard: React.FC<{ data: GrantOpportunity, t: (k:string)=>string }> = ({ data, t }) => {
-  const scoreColor = data.relevanceScore > 80 ? 'bg-emerald-500' : data.relevanceScore > 50 ? 'bg-amber-500' : 'bg-slate-400';
+  const score = data.relevanceScore || 0;
+  const scoreColor = score > 80 ? 'bg-emerald-500' : score > 50 ? 'bg-amber-500' : 'bg-slate-400';
 
   return (
     <div className="bg-white rounded-xl p-5 border border-slate-200 hover:shadow-md transition-shadow group">
@@ -204,7 +222,7 @@ const OpportunityCard: React.FC<{ data: GrantOpportunity, t: (k:string)=>string 
           <div className="flex-1">
              <div className="flex items-start justify-between mb-2">
                 <div>
-                   <span className="text-[10px] uppercase font-bold tracking-wider text-violet-600 mb-1 block">{data.type}</span>
+                   <span className="text-[10px] uppercase font-bold tracking-wider text-violet-600 mb-1 block">{data.type || "Divers"}</span>
                    <h4 className="text-lg font-bold text-slate-800 group-hover:text-violet-700 transition-colors">{data.title}</h4>
                    <p className="text-sm font-medium text-slate-500">{data.provider}</p>
                 </div>
@@ -223,7 +241,7 @@ const OpportunityCard: React.FC<{ data: GrantOpportunity, t: (k:string)=>string 
 
           <div className="w-full md:w-40 shrink-0 flex flex-col justify-center border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-5 rtl:md:border-l-0 rtl:md:border-r rtl:md:pl-0 rtl:md:pr-5">
              <ProgressBar 
-               value={data.relevanceScore} 
+               value={score} 
                label={t('results.card_score')}
                colorClass={scoreColor}
              />
