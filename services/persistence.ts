@@ -11,7 +11,8 @@ const STORAGE_KEYS = {
   HISTORY: 'charlotte_search_history',
   PROFILE_DRAFT: 'charlotte_current_profile_draft',
   ADMIN_LOGS: 'charlotte_admin_logs',
-  ENRICHMENT_CACHE: 'charlotte_enrichment_cache'
+  ENRICHMENT_CACHE: 'charlotte_enrichment_cache',
+  REQUEST_COUNT: 'charlotte_request_count'
 };
 
 export const persistenceService = {
@@ -52,22 +53,13 @@ export const persistenceService = {
     }
   },
 
-  // --- ADMIN LOGS ---
+  // --- ADMIN LOGS (Legacy support for type safety, though feature is removed) ---
   async getAdminLogs(): Promise<AdminLog[]> {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEYS.ADMIN_LOGS);
-      return stored ? JSON.parse(stored) : [];
-    } catch (e) {
-      return [];
-    }
+    return [];
   },
 
   async saveAdminLogs(logs: AdminLog[]): Promise<void> {
-    try {
-      localStorage.setItem(STORAGE_KEYS.ADMIN_LOGS, JSON.stringify(logs));
-    } catch (e) {
-      console.error("Persistence Write Error (AdminLogs)", e);
-    }
+    // No-op
   },
 
   // --- ENRICHMENT CACHE ---
@@ -88,6 +80,24 @@ export const persistenceService = {
       localStorage.setItem(STORAGE_KEYS.ENRICHMENT_CACHE, JSON.stringify(obj));
     } catch (e) {
       console.error("Persistence Write Error (Cache)", e);
+    }
+  },
+
+  // --- REQUEST COUNT ---
+  async getRequestCount(): Promise<number> {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.REQUEST_COUNT);
+      return stored ? parseInt(stored, 10) : 0;
+    } catch {
+      return 0;
+    }
+  },
+
+  async saveRequestCount(count: number): Promise<void> {
+    try {
+      localStorage.setItem(STORAGE_KEYS.REQUEST_COUNT, count.toString());
+    } catch (e) {
+      console.error("Persistence Write Error (Count)", e);
     }
   }
 };

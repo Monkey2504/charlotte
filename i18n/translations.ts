@@ -1,3 +1,4 @@
+
 import { Language } from '../types';
 
 type TranslationKey = string;
@@ -12,6 +13,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'nav.admin': 'Mode Admin',
     'nav.association': 'Association',
     'nav.connected': 'Connecté·e',
+    'nav.requests': 'recherches',
     
     'form.title': 'Parle-moi de ton projet',
     'form.subtitle': 'Pour que je puisse t\'aider efficacement, j\'ai besoin de mieux te connaître. Plus tu es précis·e, plus mes trouvailles seront pertinentes !',
@@ -85,6 +87,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'nav.admin': 'Admin Modus',
     'nav.association': 'Vereniging',
     'nav.connected': 'Verbonden',
+    'nav.requests': 'zoekopdrachten',
     
     'form.title': 'Vertel me over je project',
     'form.subtitle': 'Om je goed te kunnen helpen, moet ik je beter leren kennen. Hoe preciezer je bent, hoe relevanter mijn vondsten!',
@@ -156,6 +159,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'nav.admin': 'Admin-Modus',
     'nav.association': 'Verein',
     'nav.connected': 'Verbunden',
+    'nav.requests': 'Suchanfragen',
     
     'form.title': 'Erzähl mir von deinem Projekt',
     'form.subtitle': 'Um dir effektiv helfen zu können, muss ich dich besser kennenlernen. Je genauer du bist, desto relevanter meine Funde!',
@@ -227,6 +231,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'nav.admin': 'وضع المسؤول',
     'nav.association': 'الجمعية',
     'nav.connected': 'متصل',
+    'nav.requests': 'عمليات البحث',
     
     'form.title': 'أخبريني عن مشروعك',
     'form.subtitle': 'لكي أساعدك بفعالية، أحتاج لمعرفتك بشكل أفضل. كلما كنتِ دقيقة، كانت النتائج أكثر صلة!',

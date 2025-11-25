@@ -10,6 +10,7 @@ interface AppContextType {
   clearHistory: () => void;
   currentProfile: ASBLProfile;
   updateCurrentProfile: (updates: Partial<ASBLProfile>) => void;
+  requestCount: number;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -27,6 +28,7 @@ const DEFAULT_PROFILE: ASBLProfile = {
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [currentProfile, setCurrentProfile] = useState<ASBLProfile>(DEFAULT_PROFILE);
+  const [requestCount, setRequestCount] = useState<number>(0);
 
   // Load data from persistence service on mount
   useEffect(() => {
@@ -42,6 +44,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (storedProfile) {
         setCurrentProfile({ ...DEFAULT_PROFILE, ...storedProfile });
       }
+
+      // 3. Load Request Count
+      const storedCount = await persistenceService.getRequestCount();
+      setRequestCount(storedCount);
     };
 
     initData();
@@ -60,7 +66,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return updated;
     });
 
-    // 2. Log to admin storage via service (Background logging remains, but access is removed)
+    // 2. Increment Request Count
+    setRequestCount(prev => {
+      const newCount = prev + 1;
+      persistenceService.saveRequestCount(newCount);
+      return newCount;
+    });
+
+    // 3. Log to admin storage via service (Background logging remains, but access is removed)
     historyService.logSearch(result);
   };
 
@@ -83,7 +96,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       addToHistory, 
       clearHistory, 
       currentProfile,
-      updateCurrentProfile
+      updateCurrentProfile,
+      requestCount
     }}>
       {children}
     </AppContext.Provider>

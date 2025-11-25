@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, History, Bot, Menu, X, ShieldAlert, Globe } from 'lucide-react';
+import { LayoutDashboard, History, Bot, Menu, X, ShieldAlert, Globe, Activity } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { cn } from '../utils/styles';
@@ -83,6 +83,7 @@ const LanguageSelector: React.FC = () => {
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { t } = useLanguage();
+  const { requestCount } = useApp();
 
   // Lock body scroll when mobile menu is open
   useScrollLock(isMobileMenuOpen);
@@ -124,15 +125,21 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
           <div className="bg-slate-900/50 pt-2">
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full border flex items-center justify-center text-xs font-bold shadow-inner transition-colors bg-slate-700 border-slate-600 text-slate-300">
+              <div className="h-9 w-9 rounded-full border flex items-center justify-center text-xs font-bold shadow-inner transition-colors bg-slate-700 border-slate-600 text-slate-300 shrink-0">
                 AS
               </div>
-              <div className="overflow-hidden">
-                 <p className="text-sm font-medium truncate text-slate-200">{t('nav.association')}</p>
-                 <p className="text-xs text-emerald-400 truncate flex items-center gap-1">
-                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                   {t('nav.connected')}
-                 </p>
+              <div className="overflow-hidden w-full">
+                 <div className="flex justify-between items-center w-full">
+                   <p className="text-sm font-medium truncate text-slate-200">{t('nav.association')}</p>
+                   <span className="text-[10px] bg-slate-800 px-1.5 py-0.5 rounded text-slate-400">{requestCount}</span>
+                 </div>
+                 <div className="flex justify-between items-center mt-0.5">
+                   <p className="text-xs text-emerald-400 truncate flex items-center gap-1">
+                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                     {t('nav.connected')}
+                   </p>
+                   <p className="text-[9px] text-slate-500 uppercase">{t('nav.requests')}</p>
+                 </div>
               </div>
             </div>
           </div>
@@ -178,6 +185,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               />
             ))}
           </nav>
+          
+          <div className="mt-8 border-t border-slate-800 pt-6">
+             <div className="flex items-center justify-between bg-slate-800/50 p-4 rounded-xl">
+                <div className="flex items-center gap-3">
+                   <Activity size={18} className="text-violet-400" />
+                   <span className="text-slate-300 font-medium">{t('nav.requests')}</span>
+                </div>
+                <span className="bg-violet-600 text-white px-2 py-0.5 rounded text-sm font-bold">{requestCount}</span>
+             </div>
+          </div>
         </div>
       )}
 
