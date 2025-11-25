@@ -21,7 +21,6 @@ const OFFICIAL_FUNDING_URLS = [
 ];
 
 // Dictionnaire des "Pensées" de Charlotte pour l'UI
-// Mis à jour pour refléter un travail plus lent et méticuleux
 const THOUGHTS: Record<Language, Record<string, string>> = {
     fr: {
         analyze: "Immersion dans ton dossier (Secteur & Activités)...",
@@ -64,8 +63,16 @@ const THOUGHTS: Record<Language, Record<string, string>> = {
 // 2. Nettoyage / Parsing JSON ROBUSTE
 const cleanAndParseJson = (text: string): any => {
     try {
+        // 1. Basic Cleanup
         let cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
         
+        // 2. Fix common LLM JSON errors (Markdown keys)
+        cleaned = cleaned.replace(/\*\*([a-zA-Z0-9_]+)\*\*:/g, '"$1":');
+        
+        // 3. Fix list items starting with * {
+        cleaned = cleaned.replace(/^\s*\*\s*\{/gm, '{');
+        
+        // 4. Locate JSON bounds
         const firstCurly = cleaned.indexOf("{");
         const firstSquare = cleaned.indexOf("[");
         
@@ -83,6 +90,8 @@ const cleanAndParseJson = (text: string): any => {
         if (start === -1 || end === -1) throw new Error("Structure JSON introuvable");
         
         cleaned = cleaned.substring(start, end + 1);
+        
+        // 5. Attempt Parse
         const parsed = JSON.parse(cleaned);
 
         if (Array.isArray(parsed)) {
@@ -141,7 +150,7 @@ const normalizeSearchResult = (raw: any, profileName: string): SearchResult => {
         const d = new Date(o.deadlineDate || "2099-12-31");
         if (isNaN(d.getTime()) && o.deadlineDate !== "2099-12-31") return false;
         if (o.deadlineDate !== "2099-12-31" && d < today) return false;
-        // On garde le filtre URL mais on accepte tout ce qui ressemble à une URL valide
+        // On accepte si l'URL semble exister (longueur minimale)
         if (!o.url || o.url.length < 8) return false;
         return true; 
     });
@@ -161,16 +170,25 @@ const verifyGrants = async (rawResult: any, originalPrompt: string, language: La
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
     const verificationPrompt = `
-        ROLE : Challengeuse d'Affaires (QA).
-        Mission : Garantir la qualité de l'audit de Charlotte.
+        [INSTRUCTION SYSTÈME: MODE STRICT]
+        Tu es un ALGORITHME DE VALIDATION (QA Bot).
+        Ta tâche est de vérifier le JSON fourni ci-dessous.
+        Tu ne dois JAMAIS converser. Tu ne dois JAMAIS dire "J'attends".
+        TRAITE L'INPUT SUIVANT IMMÉDIATEMENT :
+
+        --- INPUT (RÉSULTAT À VÉRIFIER) ---
+        \`\`\`json
+        ${JSON.stringify(rawResult)}
+        \`\`\`
         
-        Règles de Vérification :
-        1. FORMAT : Doit être un JSON valide avec une liste d'opportunités.
-        2. CONTENU : Au moins 3 opportunités pertinentes trouvées.
-        3. SOURCES : Vérifier que les URLs sont valides et semblent officielles.
-        
-        Si OK -> Réponds juste : APPROVED
-        Si KO -> Réponds JSON : { "status": "REQUIRES_REFINEMENT", "errors_found": ["..."], "refinement_instructions": "..." }
+        RÈGLES DE VALIDATION :
+        1. Structure JSON valide.
+        2. Au moins 3 opportunités présentes.
+        3. URLs valides.
+
+        OUTPUT ATTENDU (CHOISIR UNE SEULE OPTION) :
+        OPTION A (Valide) -> Réponds uniquement : APPROVED
+        OPTION B (Invalide) -> Réponds uniquement un JSON : { "status": "REQUIRES_REFINEMENT", "errors_found": ["..."], "refinement_instructions": "..." }
     `;
 
     try {
@@ -181,10 +199,16 @@ const verifyGrants = async (rawResult: any, originalPrompt: string, language: La
         });
         
         const text = resp.text?.trim();
-        if (text === "APPROVED") return { status: "APPROVED" };
+        
+        // Si l'agent est bavard mais contient APPROVED, on valide
+        if (text && text.includes("APPROVED")) return { status: "APPROVED" };
+        
         return cleanAndParseJson(text || "{}");
 
     } catch (err) {
+        // En cas d'erreur de l'auditeur (ex: texte non JSON), on "Fail Open"
+        // c'est-à-dire qu'on valide par défaut pour ne pas bloquer l'utilisateur.
+        console.warn("Audit skipped due to parsing error, assuming APPROVED.");
         return { status: "APPROVED" }; 
     }
 };
@@ -278,7 +302,7 @@ export const searchAndRefineGrants = async (
 
         ${refinement ? `\nCORRECTION IMPÉRATIVE: ${refinement}` : ""}
         
-        RÉPONSE JSON UNIQUE :
+        RÉPONSE JSON STRIQUE (INTERDICTION DE MARKDOWN SUR LES CLÉS, OBJET UNIQUE):
         {
           "executiveSummary": "Synthèse détaillée et proactive...",
           "opportunities": [{ "title": "...", "provider": "...", "deadline": "...", "deadlineDate": "YYYY-MM-DD", "relevanceScore": 90, "relevanceReason": "...", "type": "Subside/Mécénat", "url": "..." }],
@@ -301,7 +325,7 @@ export const searchAndRefineGrants = async (
             const resp = await ai.models.generateContent({
                 model: CONFIG.MODEL_ID,
                 contents: currentPrompt,
-                config: { tools: [{ googleSearch: {} }], temperature: 0.4 } // Température ajustée pour permettre une exploration plus large
+                config: { tools: [{ googleSearch: {} }], temperature: 0.4 } 
             });
 
             raw = cleanAndParseJson(resp.text || "{}");
