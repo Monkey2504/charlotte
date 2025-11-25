@@ -1,42 +1,31 @@
 
-// Définition de types pour éviter les @ts-ignore et les erreurs de linter
-interface ImportMetaEnv {
-  [key: string]: string | undefined;
-}
-
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
-
 // Fonction utilitaire pour récupérer les variables d'environnement de manière sécurisée
 // Fonctionne à la fois sur Vite (import.meta.env) et Node/Webpack (process.env)
-const getEnvVar = (key: string): string => {
-  // 1. Essayer Vite (Standard moderne pour Netlify/Vercel)
+const getEnv = () => {
+  // 1. Essayer Vite (Standard moderne)
   try {
-    // Cast explicite pour TypeScript
-    const meta = import.meta as unknown as ImportMeta;
-    if (meta && meta.env && meta.env[key]) {
-      return meta.env[key] || "";
+    // @ts-ignore
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      // @ts-ignore
+      return import.meta.env;
     }
-  } catch (e) {
-    // Ignorer si import.meta n'est pas supporté
-  }
-  
+  } catch (e) {}
+
   // 2. Essayer Node.js / Webpack (Standard ancien)
   try {
-    if (typeof process !== 'undefined' && process.env && process.env[key]) {
-      return process.env[key] || "";
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env;
     }
-  } catch (e) {
-    // Ignorer l'erreur si process n'est pas défini (navigateur strict)
-  }
+  } catch (e) {}
   
-  return "";
+  return {};
 };
+
+const ENV = getEnv();
 
 export const CONFIG = {
   // On cherche d'abord VITE_API_KEY (convention Vite), sinon API_KEY
-  API_KEY: getEnvVar("VITE_API_KEY") || getEnvVar("API_KEY") || "",
+  API_KEY: ENV.VITE_API_KEY || ENV.API_KEY || "",
   
   // Modèles
   MODEL_ID: "gemini-2.5-flash",

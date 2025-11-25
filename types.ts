@@ -4,11 +4,19 @@ export type Language = 'fr' | 'nl' | 'de' | 'ar';
 export enum Sector {
   SOCIAL = 'Action Sociale',
   CULTURE = 'Culture & Arts',
-  ENV = 'Environnement',
-  SPORT = 'Sport',
-  EDUCATION = 'Éducation',
-  HEALTH = 'Santé',
-  TECH = 'Technologie & Innovation',
+  ENV = 'Environnement & Durable',
+  SPORT = 'Sport & Loisirs',
+  EDUCATION = 'Éducation & Jeunesse',
+  HEALTH = 'Santé & Bien-être',
+  TECH = 'Technologie & Numérique',
+  INTL = 'Aide Internationale (Humanitaire)',
+  ANIMAL = 'Bien-être Animal',
+  CIVIC = 'Citoyenneté & Démocratie',
+  ECONOMY = 'Économie Sociale & Emploi',
+  HOUSING = 'Logement & Habitat',
+  HERITAGE = 'Patrimoine & Histoire',
+  SCIENCE = 'Recherche & Science',
+  JUSTICE = 'Justice & Droits',
   OTHER = 'Autre'
 }
 
