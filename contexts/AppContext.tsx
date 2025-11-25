@@ -8,8 +8,6 @@ interface AppContextType {
   history: HistoryItem[];
   addToHistory: (result: SearchResult) => void;
   clearHistory: () => void;
-  isAdmin: boolean;
-  enableAdmin: () => void;
   currentProfile: ASBLProfile;
   updateCurrentProfile: (updates: Partial<ASBLProfile>) => void;
 }
@@ -28,7 +26,6 @@ const DEFAULT_PROFILE: ASBLProfile = {
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [isAdmin, setIsAdmin] = useState(false);
   const [currentProfile, setCurrentProfile] = useState<ASBLProfile>(DEFAULT_PROFILE);
 
   // Load data from persistence service on mount
@@ -44,12 +41,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       const storedProfile = await persistenceService.getProfileDraft();
       if (storedProfile) {
         setCurrentProfile({ ...DEFAULT_PROFILE, ...storedProfile });
-      }
-
-      // 3. Load Admin Status (Via Persistence Service)
-      const storedAdminStatus = await persistenceService.getIsAdmin();
-      if (storedAdminStatus) {
-        setIsAdmin(true);
       }
     };
 
@@ -69,7 +60,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return updated;
     });
 
-    // 2. Log to admin storage via service
+    // 2. Log to admin storage via service (Background logging remains, but access is removed)
     historyService.logSearch(result);
   };
 
@@ -86,18 +77,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     });
   };
 
-  const enableAdmin = () => {
-    setIsAdmin(true);
-    persistenceService.saveIsAdmin(true);
-  };
-
   return (
     <AppContext.Provider value={{ 
       history, 
       addToHistory, 
       clearHistory, 
-      isAdmin, 
-      enableAdmin,
       currentProfile,
       updateCurrentProfile
     }}>

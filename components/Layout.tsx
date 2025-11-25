@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { LayoutDashboard, History, Bot, Menu, X, ShieldAlert, Globe } from 'lucide-react';
@@ -81,9 +82,7 @@ const LanguageSelector: React.FC = () => {
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { isAdmin, enableAdmin } = useApp();
   const { t } = useLanguage();
-  const [logoClickCount, setLogoClickCount] = useState(0);
 
   // Lock body scroll when mobile menu is open
   useScrollLock(isMobileMenuOpen);
@@ -93,32 +92,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     { path: '/history', label: t('nav.history'), icon: <History size={20} /> },
   ];
 
-  const handleSecretClick = () => {
-    if (isAdmin) return;
-    const newCount = logoClickCount + 1;
-    setLogoClickCount(newCount);
-    
-    if (newCount >= 5) {
-      enableAdmin();
-      setLogoClickCount(0);
-    }
-    
-    setTimeout(() => setLogoClickCount(0), 2000);
-  };
-
   return (
     <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 transition-all duration-300">
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white fixed h-full shadow-xl z-30 start-0">
-        <div 
-          className="p-6 flex items-center gap-3 border-b border-slate-800 cursor-pointer select-none relative"
-          onClick={handleSecretClick}
-        >
+        <div className="p-6 flex items-center gap-3 border-b border-slate-800 select-none relative">
           <div className="bg-gradient-to-br from-violet-500 to-fuchsia-500 p-2 rounded-xl shadow-lg shadow-violet-500/20 relative">
              <Bot size={24} className="text-white" />
-             {isAdmin && (
-               <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
-             )}
           </div>
           <div>
              <h1 className="font-bold text-lg tracking-tight leading-tight">{t('app.title')}</h1>
@@ -144,14 +124,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
           <div className="bg-slate-900/50 pt-2">
             <div className="flex items-center gap-3">
-              <div className={cn(
-                  "h-9 w-9 rounded-full border flex items-center justify-center text-xs font-bold shadow-inner transition-colors",
-                  isAdmin ? "bg-red-900/20 border-red-500 text-red-400" : "bg-slate-700 border-slate-600 text-slate-300"
-                )}>
-                {isAdmin ? <ShieldAlert size={16} /> : 'AS'}
+              <div className="h-9 w-9 rounded-full border flex items-center justify-center text-xs font-bold shadow-inner transition-colors bg-slate-700 border-slate-600 text-slate-300">
+                AS
               </div>
               <div className="overflow-hidden">
-                 <p className="text-sm font-medium truncate text-slate-200">{isAdmin ? t('nav.admin') : t('nav.association')}</p>
+                 <p className="text-sm font-medium truncate text-slate-200">{t('nav.association')}</p>
                  <p className="text-xs text-emerald-400 truncate flex items-center gap-1">
                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                    {t('nav.connected')}
@@ -164,12 +141,9 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
       {/* Mobile Header */}
       <div className="md:hidden fixed w-full bg-slate-900 text-white z-50 flex items-center justify-between p-4 shadow-lg border-b border-slate-800">
-         <div className="flex items-center gap-3" onClick={handleSecretClick}>
+         <div className="flex items-center gap-3">
             <div className="bg-violet-600 p-1.5 rounded-lg relative">
               <Bot size={20} className="text-white" />
-              {isAdmin && (
-               <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
-             )}
             </div>
             <span className="font-bold tracking-tight">{t('app.title')}</span>
          </div>

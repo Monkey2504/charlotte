@@ -1,12 +1,12 @@
+
 import React from 'react';
 import { useApp } from '../contexts/AppContext';
 import { Card, Button, Badge } from '../components/ui/DesignSystem';
-import { Calendar, Trash2, Trophy, Download, ShieldCheck } from 'lucide-react';
-import { historyService } from '../services/historyService';
+import { Calendar, Trash2, Trophy } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 const History: React.FC = () => {
-  const { history, clearHistory, isAdmin } = useApp();
+  const { history, clearHistory } = useApp();
   const { t } = useLanguage();
 
   return (
@@ -14,16 +14,6 @@ const History: React.FC = () => {
       <div className="flex items-center justify-between">
          <h1 className="text-2xl font-bold text-slate-800">{t('history.title')}</h1>
          <div className="flex gap-2">
-            {isAdmin && (
-              <Button 
-                variant="outline" 
-                onClick={() => historyService.exportLogsToJSON()} 
-                icon={<Download size={16} />}
-                className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
-              >
-                {t('history.export')}
-              </Button>
-            )}
             {history.length > 0 && (
               <Button variant="ghost" onClick={clearHistory} icon={<Trash2 size={16} />} className="text-slate-400 hover:text-red-500 hover:bg-red-50">
                 {t('history.clear')}
@@ -85,13 +75,6 @@ const History: React.FC = () => {
                </div>
              </Card>
            ))}
-        </div>
-      )}
-      
-      {isAdmin && (
-        <div className="mt-8 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-800 text-sm">
-           <ShieldCheck size={20} />
-           <p><strong>{t('history.admin_mode')}</strong></p>
         </div>
       )}
     </div>
