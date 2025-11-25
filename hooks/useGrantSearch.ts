@@ -9,14 +9,18 @@ export const useGrantSearch = () => {
   const { language, t } = useLanguage();
   const [state, setState] = useState<AgentState>({ status: 'idle', message: '' });
   const [currentResult, setCurrentResult] = useState<SearchResult | null>(null);
+  const [thoughts, setThoughts] = useState<string[]>([]);
 
   const performSearch = useCallback(async (profile: ASBLProfile) => {
     setState({ status: 'searching', message: t('results.loading_title') });
     setCurrentResult(null);
+    setThoughts([]); // Reset thoughts
 
     try {
-      // Utilisation de la nouvelle fonction CoVe (Chain of Verification)
-      const data = await searchAndRefineGrants(profile, language);
+      // Utilisation de la fonction CoVe avec callback pour les pensées
+      const data = await searchAndRefineGrants(profile, language, (thought) => {
+        setThoughts(prev => [...prev, thought]);
+      });
       
       const resultWithMeta = {
         ...data,
@@ -42,12 +46,14 @@ export const useGrantSearch = () => {
   const resetSearch = useCallback(() => {
     setState({ status: 'idle', message: '' });
     setCurrentResult(null);
+    setThoughts([]);
   }, []);
 
   return {
     state,
     currentResult,
     performSearch,
-    resetSearch
+    resetSearch,
+    thoughts // Exposed for UI
   };
 };

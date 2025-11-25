@@ -20,32 +20,99 @@ const OFFICIAL_FUNDING_URLS = [
     "https://www.vlaio.be"
 ];
 
-// 2. Nettoyage / Parsing JSON renforcé
+// Dictionnaire des "Pensées" de Charlotte pour l'UI
+const THOUGHTS: Record<Language, Record<string, string>> = {
+    fr: {
+        analyze: "J'analyse ton ADN numérique (Web & Réseaux)...",
+        search_start: "Je scanne le Web profond (Presse, Facebook, Fondations)...",
+        filtering: "Je sépare le bruit des vraies opportunités...",
+        audit_start: "Je soumets mes trouvailles à la Challengeuse...",
+        audit_refine: "Challenge reçue : j'approfondis l'investigation...",
+        audit_ok: "Audit validé ! Rédaction du rapport stratégique...",
+        finalizing: "Mise en forme finale..."
+    },
+    nl: {
+        analyze: "Ik analyseer je digitale DNA (Web & Socials)...",
+        search_start: "Ik scan het deep web (Pers, Facebook, Stichtingen)...",
+        filtering: "Ik scheid de ruis van echte kansen...",
+        audit_start: "Ik leg mijn bevindingen voor aan de Challenger...",
+        audit_refine: "Uitdaging ontvangen: ik verdiep het onderzoek...",
+        audit_ok: "Audit gevalideerd! Strategisch rapport opstellen...",
+        finalizing: "Definitieve opmaak..."
+    },
+    de: {
+        analyze: "Ich analysiere deine digitale DNA (Web & Soziale Netzwerke)...",
+        search_start: "Ich scanne das Deep Web (Presse, Facebook, Stiftungen)...",
+        filtering: "Ich trenne das Rauschen von echten Chancen...",
+        audit_start: "Ich lege meine Ergebnisse dem Challenger vor...",
+        audit_refine: "Herausforderung angenommen: Ich vertiefe die Untersuchung...",
+        audit_ok: "Audit validiert! Erstellung des strategischen Berichts...",
+        finalizing: "Endgültige Formatierung..."
+    },
+    ar: {
+        analyze: "أقوم بتحليل بصمتك الرقمية (الويب والشبكات)...",
+        search_start: "أقوم بمسح الويب العميق (الصحافة، فيسبوك، المؤسسات)...",
+        filtering: "أفصل الضجيج عن الفرص الحقيقية...",
+        audit_start: "أقدم نتايجي للمتحدي...",
+        audit_refine: "تم استلام التحدي: أقوم بتعميق التحقيق...",
+        audit_ok: "تم التحقق من التدقيق! كتابة التقرير الاستراتيجي...",
+        finalizing: "التنسيق النهائي..."
+    }
+};
+
+// 2. Nettoyage / Parsing JSON ROBUSTE (Supporte Objets ET Tableaux)
 const cleanAndParseJson = (text: string): any => {
     try {
         let cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
-        const start = cleaned.indexOf("{");
-        const end = cleaned.lastIndexOf("}");
-        if (start === -1 || end === -1) throw new Error("No JSON found");
+        
+        // Détection intelligente : Est-ce un Objet {} ou un Tableau [] ?
+        const firstCurly = cleaned.indexOf("{");
+        const firstSquare = cleaned.indexOf("[");
+        
+        let start = -1;
+        let end = -1;
+
+        // On prend le premier caractère valide trouvé
+        if (firstCurly !== -1 && (firstSquare === -1 || firstCurly < firstSquare)) {
+            start = firstCurly;
+            end = cleaned.lastIndexOf("}");
+        } else if (firstSquare !== -1) {
+            start = firstSquare;
+            end = cleaned.lastIndexOf("]");
+        }
+
+        if (start === -1 || end === -1) throw new Error("Structure JSON introuvable");
+        
         cleaned = cleaned.substring(start, end + 1);
-        return JSON.parse(cleaned);
+        const parsed = JSON.parse(cleaned);
+
+        // CRITICAL FIX: Si l'IA renvoie un Tableau au lieu d'un Objet racine,
+        // on prend le premier élément s'il existe, sinon objet vide.
+        if (Array.isArray(parsed)) {
+            return parsed.length > 0 ? parsed[0] : {};
+        }
+        
+        return parsed;
     } catch (err) {
         console.error("JSON parse error. Raw text received:", text);
+        // On ne throw pas ici pour permettre au processus de continuer avec un objet vide si nécessaire
         throw new Error("Oups, je n'ai pas réussi à lire ma propre réponse. (Erreur de format)");
     }
 };
 
 // 3. Normalisation Profil
 const normalizeProfileData = (raw: any): Partial<ASBLProfile> => {
+    const data = raw || {};
+    
     const normalized: Partial<ASBLProfile> = {};
-    if (typeof raw.name === "string") normalized.name = raw.name;
-    if (typeof raw.website === "string") normalized.website = raw.website;
-    if (typeof raw.region === "string") normalized.region = raw.region;
-    if (typeof raw.description === "string") normalized.description = raw.description;
+    if (typeof data.name === "string") normalized.name = data.name;
+    if (typeof data.website === "string") normalized.website = data.website;
+    if (typeof data.region === "string") normalized.region = data.region;
+    if (typeof data.description === "string") normalized.description = data.description;
     
     const validSectors = Object.values(Sector) as string[];
-    if (typeof raw.sector === "string" && validSectors.includes(raw.sector)) {
-        normalized.sector = raw.sector as Sector;
+    if (typeof data.sector === "string" && validSectors.includes(data.sector)) {
+        normalized.sector = data.sector as Sector;
     }
     return normalized;
 };
@@ -53,92 +120,78 @@ const normalizeProfileData = (raw: any): Partial<ASBLProfile> => {
 // 4. Normalisation Opportunités
 const normalizeSearchResult = (raw: any, profileName: string): SearchResult => {
     const today = new Date();
+    const data = raw || {};
 
-    const opportunities = Array.isArray(raw.opportunities)
-        ? raw.opportunities.map((o: any) => ({
-              title: o.title || "Sans titre",
-              provider: o.provider || "Inconnu",
-              deadline: o.deadline || "Non communiqué",
-              deadlineDate: o.deadlineDate || "2099-12-31",
-              relevanceScore: typeof o.relevanceScore === "number" ? o.relevanceScore : 40,
-              relevanceReason: o.relevanceReason || "Potentiellement pertinent",
-              type: o.type || "Autre",
-              url: o.url || ""
-          }))
-        : [];
+    let rawOpps = [];
+    if (Array.isArray(data.opportunities)) {
+        rawOpps = data.opportunities;
+    } else if (Array.isArray(data)) {
+        rawOpps = data;
+    }
 
-    // Filtre de sécurité
+    const opportunities = rawOpps.map((o: any) => ({
+        title: o.title || o.opportunityName || "Sans titre",
+        provider: o.provider || "Inconnu",
+        deadline: o.deadline || "Non communiqué",
+        deadlineDate: o.deadlineDate || "2099-12-31",
+        relevanceScore: typeof o.relevanceScore === "number" ? o.relevanceScore : 40,
+        relevanceReason: o.relevanceReason || "Potentiellement pertinent",
+        type: o.type || "Autre",
+        url: o.url || ""
+    }));
+
+    // Filtre de sécurité CRITIQUE
     const activeAndOfficial = opportunities.filter((o: GrantOpportunity) => {
         const d = new Date(o.deadlineDate || "2099-12-31");
         if (isNaN(d.getTime()) && o.deadlineDate !== "2099-12-31") return false;
         if (o.deadlineDate !== "2099-12-31" && d < today) return false;
-        
-        // Grounding strict sur les URLs
-        if (!o.url) return false;
-        
+        if (!o.url || o.url.length < 5) return false;
         return true; 
     });
 
     return {
-        executiveSummary: typeof raw.executiveSummary === 'string' ? raw.executiveSummary : "Résumé indisponible",
+        executiveSummary: typeof data.executiveSummary === 'string' ? data.executiveSummary : "Analyse terminée.",
         opportunities: activeAndOfficial,
-        strategicAdvice: typeof raw.strategicAdvice === 'string' ? raw.strategicAdvice : "Analyse non fournie",
+        strategicAdvice: typeof data.strategicAdvice === 'string' ? data.strategicAdvice : "Consultez les liens pour plus de détails.",
         sources: [],
         timestamp: new Date().toISOString(),
-        profileName: raw.profileName || profileName
+        profileName: data.profileName || profileName
     };
 };
 
-// --- AGENT B : L'AUDITEUR DE CONFORMITÉ ---
+// --- AGENT B: LA CHALLENGEUSE ---
 const verifyGrants = async (rawResult: any, originalPrompt: string, language: Language = "fr") => {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
     const verificationPrompt = `
-        ROLE : Auditeur·rice Senior en Conformité et Assurance Qualité. Votre seule mission est de valider le travail de l'Agent A (Charlotte) pour garantir que l'audit produit est de **qualité maximale, factuellement correct et 100% conforme au format JSON requis**. Vous ne devez jamais créer de nouveau contenu, mais seulement évaluer le contenu fourni.
-
-        Règles de Vérification Strictes :
-        1. Format JSON : Le JSON doit être parfait et contenir exactement les clés : executiveSummary, opportunities, strategicAdvice, et profileName.
-        2. Conformité des Opportunités (3 à 5) : Vérifier qu'il y a entre 3 et 5 opportunités dans le tableau.
-        3. Rigueur Analytique : Évaluer si la relevanceReason (justification) est CRITIQUE, précise et établit un lien explicite avec le Secteur, la Région et le Budget de l'ASBL, comme l'exige la stratégie initiale de l'audit.
-
-        --- Contenu à Vérifier ---
-        PROMPT ORIGINAL: "${originalPrompt.substring(0, 1000)}..." 
-        RÉSULTAT BRUT DE CHARLOTTE: "${JSON.stringify(rawResult)}"
+        ROLE : Challengeuse d'Affaires (QA).
+        Mission : Garantir la qualité de l'audit de Charlotte.
         
-        Instructions de Réponse :
-        * Si le résultat est parfait et conforme à toutes les règles, réponds **UNIQUEMENT** avec ce mot (sans balise ni ponctuation) : APPROVED
-        * Si le résultat contient des défauts, réponds **UNIQUEMENT** avec un JSON contenant des instructions de correction détaillées.
-
-        FORMAT JSON DE CORRECTION (si non approuvé) :
-        {
-          "status": "REQUIRES_REFINEMENT",
-          "errors_found": [
-            "Défaut 1...",
-            "Défaut 2..."
-          ],
-          "refinement_instructions": "Fournir à Charlotte les instructions précises pour corriger les défauts listés."
-        }
+        Règles de Vérification :
+        1. FORMAT : Doit être un JSON valide avec une liste d'opportunités.
+        2. CONTENU : Au moins 3 opportunités pertinentes trouvées.
+        3. SOURCES : Vérifier que les URLs sont valides.
+        
+        --- Contenu à Vérifier ---
+        PROMPT : "${originalPrompt.substring(0, 500)}..." 
+        RÉSULTAT : "${JSON.stringify(rawResult)}"
+        
+        Si OK -> Réponds juste : APPROVED
+        Si KO -> Réponds JSON : { "status": "REQUIRES_REFINEMENT", "errors_found": ["..."], "refinement_instructions": "..." }
     `;
 
     try {
         const resp = await ai.models.generateContent({
             model: CONFIG.MODEL_ID,
             contents: verificationPrompt,
-            config: { 
-                tools: [], 
-                temperature: 0.1 
-            }
+            config: { tools: [], temperature: 0.1 }
         });
         
         const text = resp.text?.trim();
-        if (text === "APPROVED") {
-            return { status: "APPROVED" };
-        } else {
-            return cleanAndParseJson(text || "{}");
-        }
+        if (text === "APPROVED") return { status: "APPROVED" };
+        return cleanAndParseJson(text || "{}");
 
     } catch (err) {
-        console.error("Verification Agent error", err);
         return { status: "APPROVED" }; 
     }
 };
@@ -147,28 +200,33 @@ const verifyGrants = async (rawResult: any, originalPrompt: string, language: La
 
 export const enrichProfileFromNumber = async (enterpriseNumber: string, language: Language = "fr"): Promise<Partial<ASBLProfile>> => {
     const cacheKey = enterpriseNumber.trim();
-
     try {
         const cache = await persistenceService.getEnrichmentCache();
         if (cache.has(cacheKey)) return cache.get(cacheKey)!;
-    } catch (e) {
-        console.warn("Cache read failed");
-    }
+    } catch (e) {}
 
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
-
+    
+    // PROMPT AMÉLIORÉ : ENQUÊTE PROFONDE (Web & Réseaux Sociaux)
     const prompt = `
-        Trouve les informations publiques (Nom, Site web, Région, Description courte, Secteur) pour l'organisation liée au numéro d'entreprise: "${enterpriseNumber}".
-        Assure-toi que la Description soit rédigée en français.
+        RÔLE : Enquêteur Numérique Expert pour ASBL Belges.
+        CIBLE : Entité identifiée par "${enterpriseNumber}".
         
-        Réponds UNIQUEMENT avec le JSON demandé.
-        Format attendu:
+        MISSION D'INVESTIGATION (Deep Dive) :
+        1. **Identification Officielle** : Trouve le nom légal dans la BCE (Banque-Carrefour).
+        2. **Analyse d'Activité Réelle (CRUCIAL)** : Ne te limite pas aux statuts !
+           - Scanne les **Pages Facebook, LinkedIn, Instagram** pour voir les événements récents.
+           - Cherche les articles de presse récents.
+           - Trouve le site web officiel.
+        3. **Synthèse** : Rédige une description qui reflète la VRAIE vie de l'association, pas juste son objet juridique.
+        
+        RÉPONSE JSON UNIQUE (PAS DE TABLEAU):
         {
           "name": "Nom officiel",
-          "website": "URL",
-          "region": "Bruxelles | Wallonie | Flandre",
-          "description": "Résumé mission",
-          "sector": "${Object.values(Sector).join(" | ")}"
+          "website": "URL (Site Web ou Page Facebook principale)",
+          "region": "Région (Bruxelles/Wallonie/Flandre)",
+          "description": "Description vivante et précise des activités réelles en ${language}.",
+          "sector": "Le secteur le plus proche parmi : ${Object.values(Sector).join(" | ")}"
         }
     `;
 
@@ -176,84 +234,68 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string, language
         const resp = await ai.models.generateContent({
             model: CONFIG.MODEL_ID,
             contents: prompt,
-            config: { 
-                tools: [{ googleSearch: {} }], 
-                temperature: 0.2 // Rapide et précis
-            }
+            config: { tools: [{ googleSearch: {} }], temperature: 0.2 } // Temperature un peu plus haute pour la créativité de synthèse
         });
-
         const raw = cleanAndParseJson(resp.text || "{}");
         const normalized = normalizeProfileData(raw);
-
-        try {
-            const cache = await persistenceService.getEnrichmentCache();
-            cache.set(cacheKey, normalized);
-            await persistenceService.saveEnrichmentCache(cache);
-        } catch (e) {}
-
+        
+        if (normalized.name) {
+            try {
+                const cache = await persistenceService.getEnrichmentCache();
+                cache.set(cacheKey, normalized);
+                await persistenceService.saveEnrichmentCache(cache);
+            } catch (e) {}
+        }
         return normalized;
     } catch (err) {
-        console.error("Enrichment error", err);
         return {}; 
     }
 };
 
 const MAX_ATTEMPTS = 3;
 
-// 6. Recherche et Affinage de subsides (CoVe) - Remplace searchGrants
-export const searchAndRefineGrants = async (profile: ASBLProfile, language: Language = "fr"): Promise<SearchResult> => {
+export const searchAndRefineGrants = async (
+    profile: ASBLProfile, 
+    language: Language = "fr",
+    onThought?: (thought: string) => void
+): Promise<SearchResult> => {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
+    const thoughts = THOUGHTS[language];
+
+    if (onThought) onThought(thoughts.analyze);
+    await new Promise(r => setTimeout(r, 500));
 
     const langInstructions: Record<Language, string> = {
-        fr: "Tu réponds STRICTEMENT en Français. Utilise l'écriture inclusive (point médian) pour t'adresser à l'utilisateur·rice.",
-        nl: "Je antwoordt STRICT in het Nederlands.",
-        de: "Du antwortest STRENG auf Deutsch.",
-        ar: "أنت تجيبين باللغة العربية الفصحى حصراً."
+        fr: "Réponds en Français (écriture inclusive).",
+        nl: "Antwoord in het Nederlands.",
+        de: "Antworte auf Deutsch.",
+        ar: "أجب باللغة العربية."
     };
 
-    // Génération dynamique du prompt (Factory)
-    const createPrompt = (refinementInstructions = "") => `
-        PERSONA (RIGUEUR MAXIMALE) :
-        Tu es Charlotte, **Consultante Sénior en Financement Public et Privé (niveau Master/PhD)** spécialisée dans les ASBL belges. Ton rôle est **CRITIQUE**. Tu dois évaluer la pertinence avec la rigueur d'un auditeur, en utilisant un ton **factuel, précis et proactif**. Je m'adresse toujours à l'utilisateur à la première personne du singulier ("Je").
+    // PROMPT AMÉLIORÉ : RECHERCHE 360°
+    const createPrompt = (refinement = "") => `
+        PERSONA: Charlotte, Chasseuse de Fonds d'Élite.
+        LANGUE: ${langInstructions[language]}
+        MISSION: Audit 360° pour ${profile.name} (${profile.sector}, ${profile.region}).
+        CONTEXTE: ${profile.description}
+        
+        STRATÉGIE DE CHASSE (MULTI-CANAUX) :
+        1. **Canal Officiel** : Scanne les portails régionaux et fédéraux.
+        2. **Canal Privé/Fondations** : Cherche les appels à projets de la Fondation Roi Baudouin, Cera, Loterie Nationale, et fondations d'entreprises.
+        3. **Canal Presse/Actu** : Cherche les articles récents mentionnant "nouveau subside", "appel à projets 2024/2025" pour ce secteur.
+        4. **Analyse Concurrentielle** : Regarde ce que des ASBL similaires ont reçu récemment.
 
-        LANGUE OBLIGATOIRE :
-        ${langInstructions[language]}
-        Il est IMPÉRATIF de traduire TOUT le contenu textuel généré.
+        FILTRES :
+        - Uniquement des opportunités **OUVERTES** (Pas de dates passées !).
+        - Pertinence critique par rapport à la mission décrite.
 
-        TA MISSION :
-        Audit complet des financements pour :
-        - Nom : ${profile.name}
-        - Secteur : ${profile.sector}
-        - Région : ${profile.region}
-        - Mission : ${profile.description}
-        - Budget : ${profile.budget}
-
-        STRATÉGIE (QUALITÉ MAXIMALE ET RIGUEUR D'AUDIT) :
-        1. **Recherche Exhaustive :** Je dois utiliser la recherche Google Search pour balayer de manière exhaustive les quatre niveaux (Local, Régional, Fédéral, Européen).
-        2. **Ciblage Officiel Strict :** Je dois filtrer initialement mes résultats pour ne conserver que les appels ACTIFS ou récurrents provenant EXPLICITEMENT des URLs de financement officiel.
-        3. **Analyse Détaillée et Contre-Vérification (Le Travail d'Auditeur) :** Pour chacun des 5-7 appels les plus pertinents trouvés, je dois :
-            a. **Identifier l'alignement précis** entre les objectifs du financement et la mission de l'ASBL.
-            b. **Vérifier les critères d'éligibilité exclusifs** liés au secteur, à la région et au budget.
-        4. **Priorisation et Rédaction Finale :** Je dois ensuite sélectionner **3 à 5 opportunités TRES pertinentes** pour le rendu JSON.
-
-        ${refinementInstructions ? `\nINSTRUCTIONS DE CORRECTION DE L'AUDITEUR : ${refinementInstructions}` : ""}
-
-        FORMAT DE RÉPONSE (JSON ONLY) :
+        ${refinement ? `\nCORRECTION REQUISE: ${refinement}` : ""}
+        
+        RÉPONSE JSON UNIQUE :
         {
-          "executiveSummary": "Résumé factuel et proactif dans la langue cible.",
-          "opportunities": [
-            {
-              "title": "Titre exact de l'appel",
-              "provider": "Organisme source officiel",
-              "deadline": "Date affichée (traduite)",
-              "deadlineDate": "YYYY-MM-DD (ISO)",
-              "relevanceScore": 85,
-              "relevanceReason": "Justification critique et précise (langue cible)",
-              "type": "Type de financement",
-              "url": "L'URL OBLIGATOIRE de la source officielle"
-            }
-          ],
-          "strategicAdvice": "Conseil stratégique et actionnable (langue cible).",
+          "executiveSummary": "Synthèse percutante...",
+          "opportunities": [{ "title": "...", "provider": "...", "deadline": "...", "deadlineDate": "YYYY-MM-DD", "relevanceScore": 90, "relevanceReason": "...", "type": "Subside/Mécénat", "url": "..." }],
+          "strategicAdvice": "...",
           "profileName": "${profile.name}"
         }
     `;
@@ -262,14 +304,13 @@ export const searchAndRefineGrants = async (profile: ASBLProfile, language: Lang
     let grounding: any[] = [];
     let currentRefinement = "";
 
-    // BOUCLE DE RAFFINEMENT (CoVe)
+    if (onThought) onThought(thoughts.search_start);
+
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-        
-        console.log(`[CoVe] Tentative d'audit n°${attempt}...`);
-        
-        // 1. Appel à Charlotte (Agent A)
         try {
             const currentPrompt = createPrompt(currentRefinement);
+            if (attempt > 1 && onThought) onThought(thoughts.filtering);
+
             const resp = await ai.models.generateContent({
                 model: CONFIG.MODEL_ID,
                 contents: currentPrompt,
@@ -279,30 +320,27 @@ export const searchAndRefineGrants = async (profile: ASBLProfile, language: Lang
             raw = cleanAndParseJson(resp.text || "{}");
             grounding = resp.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
-            // 2. Appel à l'Auditeur (Agent B)
-            const verificationResult = await verifyGrants(raw, currentPrompt, language);
+            if (onThought) onThought(thoughts.audit_start);
+            const verification = await verifyGrants(raw, currentPrompt, language);
 
-            if (verificationResult.status === "APPROVED") {
-                console.log(`[CoVe] Audit Approuvé après ${attempt} tentative(s).`);
-                break; // Sortie de la boucle
+            if (verification.status === "APPROVED") {
+                if (onThought) onThought(thoughts.audit_ok);
+                break;
             } 
             
-            // 3. Correction
-            if (verificationResult.status === "REQUIRES_REFINEMENT" && attempt < MAX_ATTEMPTS) {
-                console.warn(`[CoVe] Audit Rejeté. Correction nécessaire.`);
-                currentRefinement = `L'Auditeur a identifié des défauts. Tu dois strictement suivre les instructions suivantes pour produire une version corrigée : ${verificationResult.refinement_instructions}`;
+            if (verification.status === "REQUIRES_REFINEMENT" && attempt < MAX_ATTEMPTS) {
+                if (onThought) onThought(thoughts.audit_refine);
+                currentRefinement = verification.refinement_instructions;
             } else {
-                console.warn("[CoVe] Le maximum de tentatives a été atteint. Retourne la dernière version.");
                 break; 
             }
-
         } catch (err) {
-            console.error(`[CoVe] Erreur à l'étape de génération (Tentative ${attempt})`, err);
             if (attempt === MAX_ATTEMPTS) break;
         }
     }
 
-    // Retourne le résultat final normalisé
+    if (onThought) onThought(thoughts.finalizing);
+    
     const normalized = normalizeSearchResult(raw || {}, profile.name);
     normalized.sources = grounding;
     return normalized;
