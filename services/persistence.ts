@@ -1,16 +1,14 @@
 
-import { ASBLProfile, HistoryItem, AdminLog } from '../types';
+import { ASBLProfile, HistoryItem } from '../types';
 
 /**
  * Service de Persistance (Repository Pattern)
- * Abstraction de la couche de données pour permettre une migration facile
- * de LocalStorage vers Firestore/Supabase sans toucher au reste de l'app.
+ * Abstraction de la couche de données pour permettre une migration facile.
  */
 
 const STORAGE_KEYS = {
   HISTORY: 'charlotte_search_history',
   PROFILE_DRAFT: 'charlotte_current_profile_draft',
-  ADMIN_LOGS: 'charlotte_admin_logs',
   ENRICHMENT_CACHE: 'charlotte_enrichment_cache',
   REQUEST_COUNT: 'charlotte_request_count'
 };
@@ -51,15 +49,6 @@ export const persistenceService = {
     } catch (e) {
       console.error("Persistence Write Error (Profile)", e);
     }
-  },
-
-  // --- ADMIN LOGS (Legacy support for type safety, though feature is removed) ---
-  async getAdminLogs(): Promise<AdminLog[]> {
-    return [];
-  },
-
-  async saveAdminLogs(logs: AdminLog[]): Promise<void> {
-    // No-op
   },
 
   // --- ENRICHMENT CACHE ---

@@ -1,6 +1,8 @@
 
 export type Language = 'fr' | 'nl' | 'de' | 'ar';
 
+export type SearchMode = 'fast' | 'deep';
+
 export enum Sector {
   SOCIAL = 'Action Sociale',
   CULTURE = 'Culture & Arts',
@@ -28,6 +30,7 @@ export interface ASBLProfile {
   region: string;
   description: string;
   budget: string;
+  searchMode?: SearchMode;
 }
 
 export interface GroundingChunk {
@@ -59,14 +62,6 @@ export interface SearchResult {
 
 export interface HistoryItem extends SearchResult {
   id: string;
-}
-
-export interface AdminLog {
-  id: string;
-  timestamp: string;
-  type: 'search';
-  data: SearchResult;
-  synced: boolean;
 }
 
 export type AgentStatus = 'idle' | 'searching' | 'analyzing' | 'complete' | 'error';

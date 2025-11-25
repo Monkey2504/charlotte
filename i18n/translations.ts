@@ -10,7 +10,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'app.subtitle': 'Ton alliée financement',
     'nav.dashboard': 'Mon bureau',
     'nav.history': 'Mes souvenirs',
-    'nav.admin': 'Mode Admin',
     'nav.association': 'Association',
     'nav.connected': 'Connecté·e',
     'nav.requests': 'recherches',
@@ -18,7 +17,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'form.title': 'Parle-moi de ton projet',
     'form.subtitle': 'Pour que je puisse t\'aider efficacement, j\'ai besoin de mieux te connaître. Plus tu es précis·e, plus mes trouvailles seront pertinentes !',
     
-    // NOUVEAUX CHAMPS DE QUALIFICATION
     'form.type_entity': 'Structure existante (ASBL/Entreprise)',
     'form.type_individual': 'Porteur·se de projet / Particulier',
     'form.individual_warning': '⚠️ Attention : Charlotte est optimisée pour les structures enregistrées. Pour un·e particulier·ère, les aides trouvées seront plus limitées.',
@@ -40,6 +38,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'form.submit': 'C\'est parti Charlotte, cherche pour moi !',
     'form.wait': 'Attends un peu...',
     'form.cooldown': 'Attends',
+    
+    'form.mode_fast': '⚡ Éclair (Rapide)',
+    'form.mode_deep': '🕵️ Audit Approfondi (Recommandé)',
 
     'results.loading_title': 'Je travaille...',
     'results.error_title': 'Oups !',
@@ -69,7 +70,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.card_score': 'Mon feeling',
 
     'history.title': 'Historique des Recherches',
-    'history.export': 'Export Admin (JSON)',
     'history.clear': 'Effacer',
     'history.empty_title': 'Aucun historique',
     'history.empty_desc': 'Vos recherches passées apparaîtront ici.',
@@ -77,27 +77,23 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'history.opportunities': 'opportunités',
     'history.sources': 'sources',
     'history.others': 'autres',
-    'history.admin_mode': 'Mode Administrateur·rice Actif',
   },
   nl: {
     'app.title': 'Charlotte AI',
     'app.subtitle': 'Jouw financieringspartner',
     'nav.dashboard': 'Mijn kantoor',
     'nav.history': 'Mijn herinneringen',
-    'nav.admin': 'Admin Modus',
     'nav.association': 'Vereniging',
     'nav.connected': 'Verbonden',
     'nav.requests': 'zoekopdrachten',
     
     'form.title': 'Vertel me over je project',
     'form.subtitle': 'Om je goed te kunnen helpen, moet ik je beter leren kennen. Hoe preciezer je bent, hoe relevanter mijn vondsten!',
-    
     'form.type_entity': 'Bestaande structuur (VZW/Bedrijf)',
     'form.type_individual': 'Projectdrager / Particulier',
     'form.individual_warning': '⚠️ Let op: Charlotte is geoptimaliseerd voor geregistreerde structuren. Voor particulieren zijn de resultaten beperkter.',
     'form.identity_label_entity': 'Ondernemingsnummer (KBO) of officiële naam',
     'form.identity_label_individual': 'Je naam en voornaam',
-
     'form.autofill_btn': 'Laat Charlotte zoeken',
     'form.autofill_hint': 'Klik op de vonk en ik vul de rest zelf in!',
     'form.autofill_error': 'Ik heb je structuur helaas niet kunnen vinden.',
@@ -112,6 +108,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'form.submit': 'Kom op Charlotte, zoek voor mij!',
     'form.wait': 'Even wachten...',
     'form.cooldown': 'Wacht',
+    
+    'form.mode_fast': '⚡ Snelle Scan',
+    'form.mode_deep': '🕵️ Diepe Audit (Aanbevolen)',
 
     'results.loading_title': 'Ik ben aan het werk...',
     'results.error_title': 'Oeps!',
@@ -141,7 +140,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.card_score': 'Mijn gevoel',
 
     'history.title': 'Zoekgeschiedenis',
-    'history.export': 'Admin Export (JSON)',
     'history.clear': 'Wissen',
     'history.empty_title': 'Geen geschiedenis',
     'history.empty_desc': 'Je eerdere zoekopdrachten verschijnen hier.',
@@ -149,27 +147,23 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'history.opportunities': 'kansen',
     'history.sources': 'bronnen',
     'history.others': 'andere',
-    'history.admin_mode': 'Beheerdersmodus Actief',
   },
   de: {
     'app.title': 'Charlotte AI',
     'app.subtitle': 'Deine Finanzierungs-Alliierte',
     'nav.dashboard': 'Mein Büro',
     'nav.history': 'Meine Erinnerungen',
-    'nav.admin': 'Admin-Modus',
     'nav.association': 'Verein',
     'nav.connected': 'Verbunden',
     'nav.requests': 'Suchanfragen',
     
     'form.title': 'Erzähl mir von deinem Projekt',
     'form.subtitle': 'Um dir effektiv helfen zu können, muss ich dich besser kennenlernen. Je genauer du bist, desto relevanter meine Funde!',
-    
     'form.type_entity': 'Bestehende Struktur (Vb/Unternehmen)',
     'form.type_individual': 'Projektträger / Einzelperson',
     'form.individual_warning': '⚠️ Achtung: Charlotte ist für registrierte Strukturen optimiert. Für Einzelpersonen sind die Ergebnisse begrenzter.',
     'form.identity_label_entity': 'Unternehmensnummer (ZDE) oder offizieller Name',
     'form.identity_label_individual': 'Dein Vor- und Nachname',
-
     'form.autofill_btn': 'Lass Charlotte suchen',
     'form.autofill_hint': 'Klick auf den Funken und ich fülle den Rest alleine aus!',
     'form.autofill_error': 'Ich konnte deine Struktur leider nicht finden.',
@@ -184,6 +178,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'form.submit': 'Los Charlotte, such für mich!',
     'form.wait': 'Warte mal...',
     'form.cooldown': 'Warte',
+    
+    'form.mode_fast': '⚡ Blitzsuche',
+    'form.mode_deep': '🕵️ Tiefenprüfung (Empfohlen)',
 
     'results.loading_title': 'Ich arbeite...',
     'results.error_title': 'Hoppla!',
@@ -213,7 +210,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.card_score': 'Mein Gefühl',
 
     'history.title': 'Suchverlauf',
-    'history.export': 'Admin Export (JSON)',
     'history.clear': 'Löschen',
     'history.empty_title': 'Kein Verlauf',
     'history.empty_desc': 'Deine vergangenen Suchen erscheinen hier.',
@@ -221,27 +217,23 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'history.opportunities': 'Chancen',
     'history.sources': 'Quellen',
     'history.others': 'andere',
-    'history.admin_mode': 'Admin-Modus Aktiv',
   },
   ar: {
     'app.title': 'شارلوت AI',
     'app.subtitle': 'حليفك في التمويل',
     'nav.dashboard': 'مكتبي',
     'nav.history': 'ذكرياتي',
-    'nav.admin': 'وضع المسؤول',
     'nav.association': 'الجمعية',
     'nav.connected': 'متصل',
     'nav.requests': 'عمليات البحث',
     
     'form.title': 'أخبريني عن مشروعك',
     'form.subtitle': 'لكي أساعدك بفعالية، أحتاج لمعرفتك بشكل أفضل. كلما كنتِ دقيقة، كانت النتائج أكثر صلة!',
-    
     'form.type_entity': 'هيكل قائم (جمعية/شركة)',
     'form.type_individual': 'حامل المشروع / فرد',
     'form.individual_warning': '⚠️ تنبيه: تم تحسين شارلوت للهياكل المسجلة. بالنسبة للأفراد، قد تكون النتائج محدودة.',
     'form.identity_label_entity': 'رقم المؤسسة أو الاسم الرسمي',
     'form.identity_label_individual': 'اسمك الكامل',
-
     'form.autofill_btn': 'دعي شارلوت تبحث',
     'form.autofill_hint': 'اضغطي على الشرارة وسأملأ الباقي بنفسي!',
     'form.autofill_error': 'لم أتمكن من العثور على مؤسستك، آسفة.',
@@ -256,6 +248,9 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'form.submit': 'انطلقي يا شارلوت، ابحثي لي!',
     'form.wait': 'لحظة من فضلك...',
     'form.cooldown': 'انتظر',
+    
+    'form.mode_fast': '⚡ بحث سريع',
+    'form.mode_deep': '🕵️ تدقيق شامل (موصى به)',
 
     'results.loading_title': 'أنا أعمل...',
     'results.error_title': 'عفواً!',
@@ -285,7 +280,6 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.card_score': 'شعوري',
 
     'history.title': 'سجل البحث',
-    'history.export': 'تصدير المسؤول (JSON)',
     'history.clear': 'مسح',
     'history.empty_title': 'لا يوجد سجل',
     'history.empty_desc': 'ستظهر أبحاثك السابقة هنا.',
@@ -293,6 +287,5 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'history.opportunities': 'فرص',
     'history.sources': 'مصادر',
     'history.others': 'أخرى',
-    'history.admin_mode': 'وضع المسؤول نشط',
   }
 };

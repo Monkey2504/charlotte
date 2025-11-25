@@ -7,6 +7,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { cn } from '../utils/styles';
 import { useScrollLock } from '../hooks/useScrollLock';
 import { Language } from '../types';
+import { AnimatedCounter } from './ui/DesignSystem'; // Import AnimatedCounter
 
 // Sub-component for Navigation Items
 const NavItem: React.FC<{ to: string; icon: React.ReactNode; label: string; onClick?: () => void }> = ({ to, icon, label, onClick }) => {
@@ -130,7 +131,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               <div className="overflow-hidden w-full">
                  <div className="flex justify-between items-center w-full">
                    <p className="text-sm font-bold truncate text-slate-200">{t('nav.association')}</p>
-                   <span className="text-[10px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full font-mono">{requestCount}</span>
+                   {/* Desktop counter with animation */}
+                   <AnimatedCounter 
+                     value={requestCount} 
+                     className="text-[10px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full font-mono" 
+                   />
                  </div>
                  <div className="flex justify-between items-center mt-1">
                    <p className="text-[10px] text-emerald-400 truncate flex items-center gap-1.5 font-medium">
@@ -191,7 +196,11 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                    <Activity size={18} className="text-violet-400" />
                    <span className="text-slate-300 font-medium">{t('nav.requests')}</span>
                 </div>
-                <span className="bg-violet-600 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg shadow-violet-900/50">{requestCount}</span>
+                {/* Mobile counter with animation */}
+                <AnimatedCounter 
+                  value={requestCount} 
+                  className="bg-violet-600 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg shadow-violet-900/50" 
+                />
              </div>
           </div>
         </div>

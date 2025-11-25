@@ -8,14 +8,37 @@ interface ResultsViewProps {
   result: SearchResult | null;
 }
 
-// --- UTILITAIRE DE NETTOYAGE D'AFFICHAGE ---
-// Transforme le Markdown basique (gras **) en éléments React propres
-const renderText = (text: string) => {
+// --- SENIOR TEXT RENDERER ---
+// Remplace le simple split par un parsing plus sémantique
+// Gère les sauts de ligne, les listes à puces et le gras
+const FormattedText: React.FC<{ text: string; className?: string }> = ({ text, className = "" }) => {
   if (!text) return null;
-  
-  // Séparer par les marqueurs de gras **
+
+  const paragraphs = text.split('\n').filter(p => p.trim() !== '');
+
+  return (
+    <div className={`space-y-2 ${className}`}>
+      {paragraphs.map((paragraph, idx) => {
+        // Gestion des listes à puces
+        if (paragraph.trim().startsWith('- ') || paragraph.trim().startsWith('* ')) {
+           const content = paragraph.replace(/^[-*]\s+/, '');
+           return (
+             <div key={idx} className="flex gap-2 ml-2">
+               <span className="text-violet-500 mt-1.5">•</span>
+               <span className="text-slate-600">{parseBold(content)}</span>
+             </div>
+           );
+        }
+        // Paragraphe standard
+        return <p key={idx} className="text-slate-600 leading-relaxed">{parseBold(paragraph)}</p>;
+      })}
+    </div>
+  );
+};
+
+// Helper pour le gras (**text**)
+const parseBold = (text: string) => {
   const parts = text.split(/(\*\*.*?\*\*)/g);
-  
   return parts.map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return <strong key={index} className="font-bold text-slate-800">{part.slice(2, -2)}</strong>;
@@ -33,12 +56,10 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
       <div className="h-full flex flex-col justify-center animate-fade-in py-8">
         {/* HERO SECTION / ONBOARDING */}
         <div className="bg-white rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-white/50 relative overflow-hidden max-w-4xl mx-auto">
-           {/* Background Decoration */}
            <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-violet-100/50 to-transparent rounded-bl-full pointer-events-none -mr-20 -mt-20 opacity-60"></div>
            <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-fuchsia-100/40 to-transparent rounded-tr-full pointer-events-none -ml-20 -mb-20 opacity-60"></div>
 
            <div className="p-10 md:p-14 text-center relative z-10">
-              
               <div className="inline-flex bg-gradient-to-br from-violet-500 to-fuchsia-600 p-1 rounded-3xl mb-8 shadow-xl shadow-violet-500/20">
                  <div className="bg-white p-5 rounded-[1.3rem]">
                    <Sparkles size={48} className="text-transparent bg-clip-text bg-gradient-to-br from-violet-600 to-fuchsia-600 fill-violet-50" />
@@ -52,34 +73,12 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
                 {t('results.empty_desc')}
               </p>
 
-              {/* Value Props Grid */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-start mb-12">
-                 <div className="group p-6 bg-slate-50/50 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-lg hover:shadow-amber-100/50 transition-all duration-300">
-                    <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                       <Target size={20} />
-                    </div>
-                    <h4 className="font-bold text-slate-800 text-base mb-2">{t('results.benefit_sort')}</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed">{t('results.benefit_sort_desc')}</p>
-                 </div>
-                 
-                 <div className="group p-6 bg-slate-50/50 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-lg hover:shadow-emerald-100/50 transition-all duration-300">
-                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                       <TrendingUp size={20} />
-                    </div>
-                    <h4 className="font-bold text-slate-800 text-base mb-2">{t('results.benefit_find')}</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed">{t('results.benefit_find_desc')}</p>
-                 </div>
-
-                 <div className="group p-6 bg-slate-50/50 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-lg hover:shadow-violet-100/50 transition-all duration-300">
-                    <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                       <Lightbulb size={20} />
-                    </div>
-                    <h4 className="font-bold text-slate-800 text-base mb-2">{t('results.benefit_advise')}</h4>
-                    <p className="text-sm text-slate-500 leading-relaxed">{t('results.benefit_advise_desc')}</p>
-                 </div>
+                 <BenefitCard icon={<Target size={20} />} title={t('results.benefit_sort')} desc={t('results.benefit_sort_desc')} color="amber" />
+                 <BenefitCard icon={<TrendingUp size={20} />} title={t('results.benefit_find')} desc={t('results.benefit_find_desc')} color="emerald" />
+                 <BenefitCard icon={<Lightbulb size={20} />} title={t('results.benefit_advise')} desc={t('results.benefit_advise_desc')} color="violet" />
               </div>
 
-              {/* Teaser UI */}
               <div className="relative pt-6">
                  <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 py-1 rounded-full border border-slate-100 shadow-sm text-[10px] font-bold text-slate-400 uppercase tracking-widest z-10">
                    {t('results.preview_title')}
@@ -107,18 +106,16 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
     );
   }
 
-  // Safe fallback for timestamp
   const timestamp = result.timestamp ? new Date(result.timestamp) : new Date();
   const dateStr = timestamp.toLocaleDateString();
 
-  // Defensive copy and sort
   const opportunities = result.opportunities || [];
   const sortedOpportunities = [...opportunities].sort((a, b) => {
      if (sortBy === 'relevance') {
        return (b.relevanceScore || 0) - (a.relevanceScore || 0);
      }
      const getTime = (isoDate?: string) => {
-       if (!isoDate) return 4102444800000;
+       if (!isoDate) return 4102444800000; // 2100
        const t = new Date(isoDate).getTime();
        return isNaN(t) ? 4102444800000 : t;
      };
@@ -127,8 +124,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
 
   return (
     <div className="space-y-8 animate-fade-in pb-10">
-      
-      {/* Header Results */}
+      {/* Header */}
       <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
            <div className="flex items-center gap-3 mb-2">
@@ -141,18 +137,8 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
            </p>
         </div>
         <div className="flex bg-slate-100 p-1.5 rounded-xl gap-1">
-          <button 
-             onClick={() => setSortBy('relevance')}
-             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all shadow-sm ${sortBy === 'relevance' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 shadow-none'}`}
-          >
-            {t('results.sort_relevance')}
-          </button>
-          <button 
-             onClick={() => setSortBy('deadline')}
-             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all shadow-sm ${sortBy === 'deadline' ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 shadow-none'}`}
-          >
-            {t('results.sort_deadline')}
-          </button>
+          <SortButton active={sortBy === 'relevance'} onClick={() => setSortBy('relevance')}>{t('results.sort_relevance')}</SortButton>
+          <SortButton active={sortBy === 'deadline'} onClick={() => setSortBy('deadline')}>{t('results.sort_deadline')}</SortButton>
         </div>
       </div>
 
@@ -163,19 +149,15 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
                 <div className="bg-violet-50 p-3 rounded-2xl h-fit shrink-0 text-violet-600">
                     <Trophy size={28} />
                 </div>
-                <div>
+                <div className="flex-1">
                     <h3 className="text-xl font-bold text-slate-800 mb-2">{t('results.summary_title')}</h3>
-                    <div className="text-slate-600 leading-relaxed text-base">
-                        {renderText(result.executiveSummary)}
-                    </div>
+                    <FormattedText text={result.executiveSummary} />
                 </div>
             </div>
          </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        
-        {/* Main List */}
         <div className="xl:col-span-2 space-y-6">
            {sortedOpportunities.length > 0 ? (
              sortedOpportunities.map((opp, idx) => (
@@ -190,11 +172,10 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
            )}
         </div>
 
-        {/* Sidebar Advice */}
         <div className="xl:col-span-1 space-y-6">
           <Card title={<div className="flex items-center gap-2 text-amber-600"><Lightbulb size={20} fill="currentColor" className="text-amber-100" /> {t('results.advice_title')}</div>} className="border-l-4 border-l-amber-400">
-             <div className="text-sm text-slate-600 italic leading-relaxed">
-               "{renderText(result.strategicAdvice)}"
+             <div className="text-sm italic">
+               <FormattedText text={result.strategicAdvice} />
              </div>
           </Card>
 
@@ -203,13 +184,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
               {result.sources && result.sources.length > 0 ? (
                 result.sources.map((source, idx) => (
                   source.web?.uri && (
-                    <a
-                      key={idx}
-                      href={source.web.uri}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all group"
-                    >
+                    <a key={idx} href={source.web.uri} target="_blank" rel="noopener noreferrer" className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-all group">
                       <div className="mt-0.5 bg-slate-100 text-slate-500 p-1.5 rounded-lg shrink-0 group-hover:bg-violet-100 group-hover:text-violet-600 transition-colors">
                         <ExternalLink size={14} />
                       </div>
@@ -240,6 +215,35 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
   );
 };
 
+// --- Sub-Components for Cleaner Code ---
+
+const BenefitCard: React.FC<{ icon: React.ReactNode; title: string; desc: string; color: 'amber' | 'emerald' | 'violet' }> = ({ icon, title, desc, color }) => {
+  const colorClasses = {
+    amber: "bg-amber-100 text-amber-600 hover:shadow-amber-100/50",
+    emerald: "bg-emerald-100 text-emerald-600 hover:shadow-emerald-100/50",
+    violet: "bg-violet-100 text-violet-600 hover:shadow-violet-100/50"
+  };
+  
+  return (
+    <div className={`group p-6 bg-slate-50/50 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-lg transition-all duration-300 ${colorClasses[color]}`}>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${colorClasses[color].split(' ')[0]} ${colorClasses[color].split(' ')[1]}`}>
+            {icon}
+        </div>
+        <h4 className="font-bold text-slate-800 text-base mb-2">{title}</h4>
+        <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+    </div>
+  );
+};
+
+const SortButton: React.FC<{ active: boolean; onClick: () => void; children: React.ReactNode }> = ({ active, onClick, children }) => (
+  <button 
+     onClick={onClick}
+     className={`px-4 py-2 text-xs font-bold rounded-lg transition-all shadow-sm ${active ? 'bg-white text-violet-700 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50 shadow-none'}`}
+  >
+    {children}
+  </button>
+);
+
 const OpportunityCard: React.FC<{ data: GrantOpportunity, t: (k:string)=>string }> = ({ data, t }) => {
   const score = data.relevanceScore || 0;
   const scoreColor = score > 80 ? 'bg-emerald-500 shadow-emerald-200' : score > 50 ? 'bg-amber-500 shadow-amber-200' : 'bg-slate-400 shadow-slate-200';
@@ -266,13 +270,13 @@ const OpportunityCard: React.FC<{ data: GrantOpportunity, t: (k:string)=>string 
                 )}
              </div>
              
-             <h4 className="text-xl font-bold text-slate-800 group-hover:text-violet-700 transition-colors mb-1">{renderText(data.title)}</h4>
+             <h4 className="text-xl font-bold text-slate-800 group-hover:text-violet-700 transition-colors mb-1">{parseBold(data.title)}</h4>
              <p className="text-sm font-medium text-slate-500 mb-4">{data.provider}</p>
              
              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 relative">
                 <div className="absolute top-0 left-4 -mt-1.5 w-3 h-3 bg-slate-50 border-t border-l border-slate-100 transform rotate-45"></div>
-                <div className="text-sm text-slate-600 italic leading-relaxed">
-                   "{renderText(data.relevanceReason)}"
+                <div className="text-sm text-slate-600 italic">
+                   <FormattedText text={data.relevanceReason} />
                 </div>
              </div>
 

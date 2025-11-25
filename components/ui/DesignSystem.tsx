@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Loader2 } from 'lucide-react';
 import { cn } from '../../utils/styles';
 
@@ -181,4 +181,68 @@ export const ProgressBar: React.FC<ProgressBarProps> = ({ value, label, colorCla
       </div>
     </div>
   );
+};
+
+// --- ANIMATED COUNTER ---
+interface AnimatedCounterProps {
+  value: number;
+  duration?: number; // in milliseconds
+  className?: string;
+}
+
+export const AnimatedCounter: React.FC<AnimatedCounterProps> = ({ value, duration = 500, className }) => {
+  const [displayedValue, setDisplayedValue] = useState(value);
+  const animationFrameRef = useRef<number | null>(null);
+  const prevValueRef = useRef(value); // Stores the previous 'value' prop
+
+  useEffect(() => {
+    // If the new 'value' prop is the same as the last 'value' we processed, do nothing.
+    if (value === prevValueRef.current) {
+      return;
+    }
+
+    const startValue = prevValueRef.current; // Animation starts from this value
+    const endValue = value; // Animation goes to this value
+    const startTime = performance.now();
+
+    // Clear any existing animation frame to start fresh
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+
+    const animate = (currentTime: DOMHighResTimeStamp) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1); // Progress from 0 to 1
+
+      const interpolatedValue = startValue + (endValue - startValue) * progress;
+      setDisplayedValue(Math.floor(interpolatedValue));
+
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(animate);
+      } else {
+        setDisplayedValue(endValue); // Ensure the final value is exact
+        animationFrameRef.current = null;
+      }
+    };
+
+    animationFrameRef.current = requestAnimationFrame(animate);
+
+    // Update prevValueRef to the current 'value' prop, so the next update knows where to start from
+    prevValueRef.current = value;
+
+    // Cleanup function
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [value, duration]); // Dependencies: 'value' (prop) and 'duration'
+
+  // Ensure prevValueRef is correctly initialized on mount for the first animation.
+  // This effect runs only once after the initial render.
+  useEffect(() => {
+    prevValueRef.current = value;
+  }, []);
+
+  return <span className={cn(className)}>{displayedValue}</span>;
 };

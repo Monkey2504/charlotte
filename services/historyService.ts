@@ -1,8 +1,8 @@
 
-import { AdminLog, SearchResult } from '../types';
-import { persistenceService } from './persistence';
+// --- UTILITAIRE ---
+// Ce fichier ne sert plus qu'à fournir un générateur d'ID unique.
+// L'ancien système de logging admin a été supprimé.
 
-// Fallback UUID generator
 export const generateUUID = (): string => {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
     return crypto.randomUUID();
@@ -14,47 +14,7 @@ export const generateUUID = (): string => {
 };
 
 export const historyService = {
-  logSearch: async (result: SearchResult) => {
-    try {
-      const logs = await persistenceService.getAdminLogs();
-      const newLog: AdminLog = {
-        id: generateUUID(),
-        timestamp: new Date().toISOString(),
-        type: 'search',
-        data: result,
-        synced: false
-      };
-      
-      logs.push(newLog);
-      await persistenceService.saveAdminLogs(logs);
-      
-      // Tentative de synchronisation immédiate (Stub)
-      await historyService.syncToCloud(newLog);
-      
-    } catch (e) {
-      console.error("Failed to save admin log", e);
-    }
-  },
-
-  getLogs: async (): Promise<AdminLog[]> => {
-    return await persistenceService.getAdminLogs();
-  },
-
-  syncToCloud: async (log: AdminLog) => {
-    // Stub pour future connexion DB
-    return Promise.resolve();
-  },
-
-  exportLogsToJSON: async () => {
-    const logs = await persistenceService.getAdminLogs();
-    const blob = new Blob([JSON.stringify(logs, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `charlotte_admin_logs_${new Date().toISOString().split('T')[0]}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
+  // No-op functions kept temporarily if any dead code still calls them, to prevent crashes.
+  // In a clean build, these should be removed entirely.
+  logSearch: async () => {},
 };
