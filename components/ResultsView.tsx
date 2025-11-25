@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { SearchResult, GrantOpportunity } from '../types';
-import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, ArrowRight, Lightbulb, Bot, Target, TrendingUp } from 'lucide-react';
+import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, ArrowRight, Lightbulb, Bot, Target, TrendingUp, Search } from 'lucide-react';
 import { Card, Badge, ProgressBar, Button } from './ui/DesignSystem';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -216,6 +216,16 @@ const OpportunityCard: React.FC<{ data: GrantOpportunity, t: (k:string)=>string 
   const score = data.relevanceScore || 0;
   const scoreColor = score > 80 ? 'bg-emerald-500' : score > 50 ? 'bg-amber-500' : 'bg-slate-400';
 
+  const handleDetailsClick = () => {
+    if (data.url) {
+      window.open(data.url, '_blank', 'noopener,noreferrer');
+    } else {
+      // Fallback: Google Search
+      const query = encodeURIComponent(`${data.title} ${data.provider} subvention`);
+      window.open(`https://www.google.com/search?q=${query}`, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   return (
     <div className="bg-white rounded-xl p-5 border border-slate-200 hover:shadow-md transition-shadow group">
        <div className="flex flex-col md:flex-row gap-5">
@@ -245,7 +255,12 @@ const OpportunityCard: React.FC<{ data: GrantOpportunity, t: (k:string)=>string 
                label={t('results.card_score')}
                colorClass={scoreColor}
              />
-             <Button variant="outline" className="w-full mt-4 text-xs py-2" icon={<ArrowRight size={12}/>}>
+             <Button 
+                variant="outline" 
+                className="w-full mt-4 text-xs py-2" 
+                icon={data.url ? <ExternalLink size={12}/> : <Search size={12}/>}
+                onClick={handleDetailsClick}
+             >
                 {t('results.card_details')}
              </Button>
           </div>
