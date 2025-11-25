@@ -1,31 +1,18 @@
-
 import { GoogleGenAI } from "@google/genai";
-import { ASBLProfile, SearchResult, Sector } from "../types";
+import { ASBLProfile, SearchResult, Sector, Language } from "../types";
 import { CONFIG, getApiKey } from "../config";
+import { persistenceService } from "./persistence";
 
-// --- CACHE SYSTEM ---
-// Stockage en mémoire des résultats d'enrichissement pour éviter les surcoûts
-const enrichmentCache = new Map<string, Partial<ASBLProfile>>();
-
-/**
- * Helper to clean and parse JSON from Markdown-wrapped text
- */
 const cleanAndParseJson = (text: string) => {
   try {
-    // 1. Nettoyage des balises Markdown (```json ... ```)
     let cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    
-    // 2. Extraction chirurgicale du JSON (du premier '{' au dernier '}')
     const firstBrace = cleaned.indexOf('{');
     const lastBrace = cleaned.lastIndexOf('}');
-    
     if (firstBrace !== -1 && lastBrace !== -1) {
       cleaned = cleaned.substring(firstBrace, lastBrace + 1);
     } else {
-      // Si pas d'accolades, c'est probablement pas du JSON
       throw new Error("Aucune structure JSON trouvée");
     }
-    
     return JSON.parse(cleaned);
   } catch (e) {
     console.error("JSON Parse Error on text:", text);
@@ -33,18 +20,27 @@ const cleanAndParseJson = (text: string) => {
   }
 };
 
-/**
- * Orchestrates the grant search using Gemini.
- */
-export const searchGrants = async (profile: ASBLProfile): Promise<SearchResult> => {
+export const searchGrants = async (profile: ASBLProfile, language: Language = 'fr'): Promise<SearchResult> => {
   const apiKey = getApiKey();
   const ai = new GoogleGenAI({ apiKey });
+
+  // Translation instructions for the persona
+  const langInstructions = {
+    fr: "Tu réponds en Français.",
+    nl: "Je antwoordt in het Nederlands. (Tu réponds en Néerlandais).",
+    de: "Du antwortest auf Deutsch. (Tu réponds en Allemand).",
+    ar: "أنت تجيب باللغة العربية. (Tu réponds en Arabe)."
+  };
 
   const prompt = `
     PERSONA :
     Tu es Charlotte, une experte en financement pour ASBL, amicale, enthousiaste et très compétente.
-    Tu t'adresses toujours à l'utilisateur à la première personne du singulier ("Je").
-    Tu tutoies l'utilisateur avec bienveillance, comme une collègue proche qui veut vraiment aider.
+    Tu t'adresses toujours à l'utilisateur à la première personne du singulier ("Je" / "Ik" / "Ich" / "أنا").
+    Tu tutoies l'utilisateur avec bienveillance.
+    
+    LANGUE OBLIGATOIRE :
+    ${langInstructions[language]}
+    Il est impératif de traduire TOUT le contenu généré (champs JSON) dans cette langue, tout en gardant le ton amical.
 
     TA MISSION POUR CE DOSSIER :
     Je dois réaliser un audit complet des opportunités de financement pour l'association suivante :
@@ -54,34 +50,30 @@ export const searchGrants = async (profile: ASBLProfile): Promise<SearchResult> 
     - Mission : ${profile.description}
     - Budget : ${profile.budget}
 
-    MA STRATÉGIE DE RECHERCHE (Instructions cachées) :
-    1. **Je cherche partout :** Je ne m'arrête pas au premier résultat. Je scanne les niveaux **Local (Commune/Province), Régional, Fédéral et Européen**.
-    2. **Je vérifie la fiabilité :** Je privilégie les sources officielles (Fondations, Ministères, SPW, COCOF, etc.).
-    3. **Je filtre intelligemment :** Je ne retiens que ce qui correspond vraiment à la mission et au budget décrits.
-    4. **Je vérifie les dates :** J'utilise Google Search pour m'assurer que les appels sont ACTIFS ou récurrents.
+    MA STRATÉGIE DE RECHERCHE :
+    1. **Je cherche partout :** Local, Régional, Fédéral, Européen.
+    2. **Je vérifie la fiabilité :** Sources officielles prioritaires.
+    3. **Je filtre intelligemment.**
+    4. **Je vérifie les dates.**
 
     FORMAT DE MA RÉPONSE (JSON uniquement) :
-    Réponds UNIQUEMENT avec un objet JSON valide selon cette structure :
+    Réponds UNIQUEMENT avec un objet JSON valide :
     {
-      "executiveSummary": "Un petit paragraphe sympa où JE (Charlotte) résume mes trouvailles. Ex: 'J'ai fouillé partout et j'ai trouvé des pépites pour ton projet de...'",
+      "executiveSummary": "Résumé sympa des trouvailles dans la langue cible.",
       "opportunities": [
         {
           "title": "Titre du financement",
-          "provider": "Qui donne l'argent ?",
-          "deadline": "Texte affiché (ex: '30 Octobre' ou 'En continu')",
-          "deadlineDate": "Format ISO AAAA-MM-JJ pour le tri (ex: '2024-10-30'). Si c'est 'En continu' ou inconnu, mets '2099-12-31'.",
+          "provider": "Organisme",
+          "deadline": "Date affichée (traduite)",
+          "deadlineDate": "YYYY-MM-DD (ISO Fixe, ne pas traduire)",
           "relevanceScore": 85,
-          "relevanceReason": "Pourquoi JE pense que c'est fait pour toi (Je t'explique mon choix personnellement).",
-          "type": "Subvention" | "Appel à projets" | "Mécénat" | "Autre"
+          "relevanceReason": "Pourquoi c'est pertinent (Expliqué dans la langue cible)",
+          "type": "Subvention/Appel à projets/..."
         }
       ],
-      "strategicAdvice": "Mon meilleur conseil d'amie pour que tu décroches ces fonds (Ex: 'N'oublie pas de mettre en avant...')",
+      "strategicAdvice": "Conseil stratégique dans la langue cible.",
       "profileName": "${profile.name}"
     }
-    
-    Contraintes :
-    - relevanceScore est un entier de 0 à 100.
-    - Liste au moins 3 à 5 opportunités pertinentes.
   `;
 
   try {
@@ -91,8 +83,6 @@ export const searchGrants = async (profile: ASBLProfile): Promise<SearchResult> 
       config: {
         tools: [{ googleSearch: {} }],
         temperature: 0.4,
-        // CRITICAL FIX: Force text/plain to avoid "Invalid Argument" error with Google Search tool
-        responseMimeType: 'text/plain', 
       },
     });
 
@@ -103,9 +93,9 @@ export const searchGrants = async (profile: ASBLProfile): Promise<SearchResult> 
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
 
     return {
-      executiveSummary: parsedData.executiveSummary || "J'ai terminé mon analyse !",
+      executiveSummary: parsedData.executiveSummary || "Analyse terminée.",
       opportunities: parsedData.opportunities || [],
-      strategicAdvice: parsedData.strategicAdvice || "Regarde les liens pour plus de détails.",
+      strategicAdvice: parsedData.strategicAdvice || "Voir liens.",
       sources: groundingChunks,
       timestamp: new Date().toISOString(),
       profileName: parsedData.profileName || profile.name,
@@ -113,38 +103,32 @@ export const searchGrants = async (profile: ASBLProfile): Promise<SearchResult> 
 
   } catch (error) {
     console.error("Gemini Service Error:", error);
-    throw new Error("J'ai eu un petit souci technique pendant mes recherches. On réessaie ensemble ?");
+    throw new Error("Erreur technique / Technische fout / Technical error / خطأ فني");
   }
 };
 
-/**
- * Enriches profile data from enterprise number.
- */
-export const enrichProfileFromNumber = async (enterpriseNumber: string): Promise<Partial<ASBLProfile>> => {
-  // 1. Check Cache first to save costs
+export const enrichProfileFromNumber = async (enterpriseNumber: string, language: Language = 'fr'): Promise<Partial<ASBLProfile>> => {
   const cacheKey = enterpriseNumber.trim().toLowerCase();
-  if (enrichmentCache.has(cacheKey)) {
-    console.log("Enrichment data retrieved from cache for:", cacheKey);
-    return enrichmentCache.get(cacheKey)!;
+  const cacheMap = await persistenceService.getEnrichmentCache();
+  
+  if (cacheMap.has(cacheKey)) {
+    return cacheMap.get(cacheKey)!;
   }
 
   const apiKey = getApiKey();
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
-    Tu es Charlotte. Une utilisatrice te donne un numéro d'entreprise ou un nom : "${enterpriseNumber}".
-    Ton but : Trouver les infos pour pré-remplir son dossier et lui faire gagner du temps.
-    Cherche le site web officiel et les réseaux sociaux.
-
-    FORMAT DE RÉPONSE :
-    Réponds UNIQUEMENT avec un objet JSON valide.
-    Structure :
+    Trouve les infos pour le numéro/nom : "${enterpriseNumber}".
+    Cherche site web et réseaux sociaux.
+    
+    Réponds UNIQUEMENT JSON :
     {
       "name": "Nom officiel",
-      "website": "URL du site web",
-      "region": "Région du siège",
-      "description": "Une description fluide de leur mission telle que JE la comprends (à la 3ème personne ici pour le formulaire).",
-      "sector": "Le secteur le plus proche parmi : ${Object.values(Sector).join(', ')}"
+      "website": "URL",
+      "region": "Région",
+      "description": "Description de la mission en ${language} (Français/Néerlandais/Allemand/Arabe selon code).",
+      "sector": "Le secteur le plus proche parmi la liste fournie (Traduire si nécessaire)."
     }
   `;
 
@@ -155,8 +139,6 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string): Promise
       config: {
         tools: [{ googleSearch: {} }],
         temperature: 0.1,
-        // CRITICAL FIX: Force text/plain here too
-        responseMimeType: 'text/plain',
       },
     });
 
@@ -164,14 +146,13 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string): Promise
     if (!text) throw new Error("Réponse vide");
     
     const result = cleanAndParseJson(text);
-
-    // 2. Save to Cache
-    enrichmentCache.set(cacheKey, result);
+    cacheMap.set(cacheKey, result);
+    await persistenceService.saveEnrichmentCache(cacheMap);
 
     return result;
 
   } catch (error) {
     console.error("Enrichment Error:", error);
-    throw new Error("Je n'ai rien trouvé avec ce numéro, désolée !");
+    throw new Error("Introuvable / Niet gevonden");
   }
 };

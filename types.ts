@@ -1,4 +1,6 @@
 
+export type Language = 'fr' | 'nl' | 'de' | 'ar';
+
 export enum Sector {
   SOCIAL = 'Action Sociale',
   CULTURE = 'Culture & Arts',
@@ -30,7 +32,8 @@ export interface GroundingChunk {
 export interface GrantOpportunity {
   title: string;
   provider: string;
-  deadline: string;
+  deadline: string; // Human readable string for display
+  deadlineDate?: string; // ISO 8601 YYYY-MM-DD for reliable sorting
   relevanceScore: number; // 0 to 100
   relevanceReason: string;
   type: 'Subvention' | 'Appel à projets' | 'Mécénat' | 'Autre';
@@ -48,6 +51,14 @@ export interface SearchResult {
 
 export interface HistoryItem extends SearchResult {
   id: string;
+}
+
+export interface AdminLog {
+  id: string;
+  timestamp: string;
+  type: 'search';
+  data: SearchResult;
+  synced: boolean;
 }
 
 export type AgentStatus = 'idle' | 'searching' | 'analyzing' | 'complete' | 'error';

@@ -5,16 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Charlotte - Intelligence Financement ASBL</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Outfit/Inter pour Latin, Cairo pour Arabe -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --font-latin: 'Inter', sans-serif;
+        --font-headings: 'Outfit', sans-serif;
+        --font-arabic: 'Cairo', sans-serif;
+      }
+
       body {
-        font-family: 'Inter', sans-serif; /* Police plus standard et lisible pour le corps */
-        background-color: #f8fafc; /* Slate-50 */
-        color: #334155; /* Slate-700 */
+        font-family: var(--font-latin);
+        background-color: #f8fafc;
+        color: #334155;
       }
+
+      /* RTL Support helpers */
+      [dir="rtl"] body {
+        font-family: var(--font-arabic);
+      }
+      
       h1, h2, h3, h4, h5, h6 {
-        font-family: 'Outfit', sans-serif; /* Titres avec personnalité */
+        font-family: var(--font-headings);
       }
+      [dir="rtl"] h1, [dir="rtl"] h2, [dir="rtl"] h3, [dir="rtl"] h4, [dir="rtl"] h5, [dir="rtl"] h6 {
+        font-family: var(--font-arabic);
+      }
+
       /* Custom scrollbar */
       ::-webkit-scrollbar {
         width: 6px;

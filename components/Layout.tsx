@@ -1,12 +1,13 @@
-
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, History, Bot, Menu, X, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, History, Bot, Menu, X, ShieldAlert, Globe } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { cn } from '../utils/styles';
 import { useScrollLock } from '../hooks/useScrollLock';
+import { Language } from '../types';
 
-// Sub-component for Navigation Items to clean up the main Layout
+// Sub-component for Navigation Items
 const NavItem: React.FC<{ to: string; icon: React.ReactNode; label: string; onClick?: () => void }> = ({ to, icon, label, onClick }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -30,7 +31,7 @@ const NavItem: React.FC<{ to: string; icon: React.ReactNode; label: string; onCl
   );
 };
 
-// Mobile Nav Item variant (bigger touch targets)
+// Mobile Nav Item
 const MobileNavItem: React.FC<{ to: string; icon: React.ReactNode; label: string; onClick: () => void }> = ({ to, icon, label, onClick }) => {
   const location = useLocation();
   const isActive = location.pathname === to;
@@ -50,17 +51,46 @@ const MobileNavItem: React.FC<{ to: string; icon: React.ReactNode; label: string
   );
 };
 
+const LanguageSelector: React.FC = () => {
+  const { language, setLanguage } = useLanguage();
+  
+  const langs: { code: Language; label: string }[] = [
+    { code: 'fr', label: 'FR' },
+    { code: 'nl', label: 'NL' },
+    { code: 'de', label: 'DE' },
+    { code: 'ar', label: 'AR' }
+  ];
+
+  return (
+    <div className="flex items-center gap-1 bg-slate-800 p-1 rounded-lg">
+      {langs.map(l => (
+        <button
+          key={l.code}
+          onClick={() => setLanguage(l.code)}
+          className={cn(
+            "text-xs font-bold px-2 py-1 rounded-md transition-all",
+            language === l.code ? "bg-violet-600 text-white shadow-sm" : "text-slate-400 hover:text-white hover:bg-slate-700"
+          )}
+        >
+          {l.label}
+        </button>
+      ))}
+    </div>
+  );
+};
+
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isAdmin, enableAdmin } = useApp();
+  const { t } = useLanguage();
   const [logoClickCount, setLogoClickCount] = useState(0);
 
   // Lock body scroll when mobile menu is open
   useScrollLock(isMobileMenuOpen);
 
   const navItems = [
-    { path: '/', label: 'Mon bureau', icon: <LayoutDashboard size={20} /> },
-    { path: '/history', label: 'Mes souvenirs', icon: <History size={20} /> },
+    { path: '/', label: t('nav.dashboard'), icon: <LayoutDashboard size={20} /> },
+    { path: '/history', label: t('nav.history'), icon: <History size={20} /> },
   ];
 
   const handleSecretClick = () => {
@@ -73,14 +103,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       setLogoClickCount(0);
     }
     
-    // Reset count after 2 seconds of inactivity
     setTimeout(() => setLogoClickCount(0), 2000);
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900">
+    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-900 transition-all duration-300">
       {/* Sidebar Desktop */}
-      <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white fixed h-full shadow-xl z-30">
+      <aside className="hidden md:flex flex-col w-64 bg-slate-900 text-white fixed h-full shadow-xl z-30 start-0">
         <div 
           className="p-6 flex items-center gap-3 border-b border-slate-800 cursor-pointer select-none relative"
           onClick={handleSecretClick}
@@ -92,8 +121,8 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
              )}
           </div>
           <div>
-             <h1 className="font-bold text-lg tracking-tight leading-tight">Charlotte AI</h1>
-             <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Ton alliée financement</p>
+             <h1 className="font-bold text-lg tracking-tight leading-tight">{t('app.title')}</h1>
+             <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">{t('app.subtitle')}</p>
           </div>
         </div>
         
@@ -108,20 +137,26 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           ))}
         </nav>
 
-        <div className="p-6 border-t border-slate-800 bg-slate-900/50">
-          <div className="flex items-center gap-3">
-            <div className={cn(
-                "h-9 w-9 rounded-full border flex items-center justify-center text-xs font-bold shadow-inner transition-colors",
-                isAdmin ? "bg-red-900/20 border-red-500 text-red-400" : "bg-slate-700 border-slate-600 text-slate-300"
-              )}>
-              {isAdmin ? <ShieldAlert size={16} /> : 'AS'}
-            </div>
-            <div className="overflow-hidden">
-               <p className="text-sm font-medium truncate text-slate-200">{isAdmin ? 'Mode Admin' : 'Association'}</p>
-               <p className="text-xs text-emerald-400 truncate flex items-center gap-1">
-                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                 Connectée
-               </p>
+        <div className="p-4 border-t border-slate-800 space-y-4">
+          <div className="flex justify-center">
+             <LanguageSelector />
+          </div>
+
+          <div className="bg-slate-900/50 pt-2">
+            <div className="flex items-center gap-3">
+              <div className={cn(
+                  "h-9 w-9 rounded-full border flex items-center justify-center text-xs font-bold shadow-inner transition-colors",
+                  isAdmin ? "bg-red-900/20 border-red-500 text-red-400" : "bg-slate-700 border-slate-600 text-slate-300"
+                )}>
+                {isAdmin ? <ShieldAlert size={16} /> : 'AS'}
+              </div>
+              <div className="overflow-hidden">
+                 <p className="text-sm font-medium truncate text-slate-200">{isAdmin ? t('nav.admin') : t('nav.association')}</p>
+                 <p className="text-xs text-emerald-400 truncate flex items-center gap-1">
+                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                   {t('nav.connected')}
+                 </p>
+              </div>
             </div>
           </div>
         </div>
@@ -136,16 +171,19 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 border-2 border-slate-900 rounded-full animate-pulse"></span>
              )}
             </div>
-            <span className="font-bold tracking-tight">Charlotte AI</span>
+            <span className="font-bold tracking-tight">{t('app.title')}</span>
          </div>
-         <button 
-           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-           className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
-           aria-label={isMobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
-           aria-expanded={isMobileMenuOpen}
-         >
-           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-         </button>
+         <div className="flex items-center gap-3">
+            <div className="scale-75 origin-right rtl:origin-left">
+              <LanguageSelector />
+            </div>
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors"
+            >
+              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+         </div>
       </div>
 
       {/* Mobile Menu Overlay */}
@@ -154,7 +192,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
           className="fixed inset-0 bg-slate-900/95 z-40 pt-24 px-6 md:hidden animate-fade-in backdrop-blur-sm"
           role="dialog"
           aria-modal="true"
-          aria-label="Menu de navigation"
         >
           <nav className="space-y-3">
             {navItems.map((item) => (
@@ -171,7 +208,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       )}
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 p-4 md:p-8 pt-24 md:pt-8 overflow-y-auto min-h-screen">
+      <main className="flex-1 md:ms-64 p-4 md:p-8 pt-24 md:pt-8 overflow-y-auto min-h-screen rtl:md:mr-64 rtl:md:ml-0">
         <div className="max-w-7xl mx-auto h-full">
            {children}
         </div>

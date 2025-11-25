@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { HistoryItem, SearchResult, ASBLProfile, Sector } from '../types';
 import { historyService, generateUUID } from '../services/historyService';
+import { persistenceService } from '../services/persistence';
 
 interface AppContextType {
   history: HistoryItem[];
@@ -14,9 +15,6 @@ interface AppContextType {
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
-
-const HISTORY_STORAGE_KEY = 'charlotte_search_history';
-const PROFILE_STORAGE_KEY = 'charlotte_current_profile_draft';
 
 const DEFAULT_PROFILE: ASBLProfile = {
   enterpriseNumber: '',
@@ -33,21 +31,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentProfile, setCurrentProfile] = useState<ASBLProfile>(DEFAULT_PROFILE);
 
-  // Load history and profile draft from localStorage on mount
+  // Load data from persistence service on mount
   useEffect(() => {
-    try {
-      const storedHistory = localStorage.getItem(HISTORY_STORAGE_KEY);
-      if (storedHistory) {
-        setHistory(JSON.parse(storedHistory));
+    const initData = async () => {
+      // 1. Load History
+      const storedHistory = await persistenceService.getHistory();
+      if (storedHistory.length > 0) {
+        setHistory(storedHistory);
       }
 
-      const storedProfile = localStorage.getItem(PROFILE_STORAGE_KEY);
+      // 2. Load Profile Draft
+      const storedProfile = await persistenceService.getProfileDraft();
       if (storedProfile) {
-        setCurrentProfile({ ...DEFAULT_PROFILE, ...JSON.parse(storedProfile) });
+        setCurrentProfile({ ...DEFAULT_PROFILE, ...storedProfile });
       }
-    } catch (e) {
-      console.error("Failed to load local storage data", e);
-    }
+    };
+
+    initData();
   }, []);
 
   const addToHistory = (result: SearchResult) => {
@@ -59,23 +59,23 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     
     setHistory(prev => {
       const updated = [newItem, ...prev].slice(0, 50); // Limit to 50 items
-      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(updated));
+      persistenceService.saveHistory(updated);
       return updated;
     });
 
-    // 2. Log to admin storage
+    // 2. Log to admin storage via service
     historyService.logSearch(result);
   };
 
   const clearHistory = () => {
     setHistory([]);
-    localStorage.removeItem(HISTORY_STORAGE_KEY);
+    persistenceService.saveHistory([]);
   };
 
   const updateCurrentProfile = (updates: Partial<ASBLProfile>) => {
     setCurrentProfile(prev => {
       const updated = { ...prev, ...updates };
-      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(updated));
+      persistenceService.saveProfileDraft(updated);
       return updated;
     });
   };
