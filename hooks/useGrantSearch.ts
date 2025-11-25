@@ -22,6 +22,11 @@ export const useGrantSearch = () => {
         setThoughts(prev => [...prev, thought]);
       });
       
+      // --- FIX UX : Transition douce ---
+      // On attend 1.5 secondes pour laisser l'utilisateur lire "Finalisation"
+      // et éviter le "glitch" visuel brutal vers les résultats.
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
       const resultWithMeta = {
         ...data,
         profileName: profile.name

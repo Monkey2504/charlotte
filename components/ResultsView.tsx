@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SearchResult, GrantOpportunity } from '../types';
 import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, ArrowRight, Lightbulb, Sparkles, Target, TrendingUp, Search, Zap } from 'lucide-react';
@@ -8,6 +7,22 @@ import { useLanguage } from '../contexts/LanguageContext';
 interface ResultsViewProps {
   result: SearchResult | null;
 }
+
+// --- UTILITAIRE DE NETTOYAGE D'AFFICHAGE ---
+// Transforme le Markdown basique (gras **) en éléments React propres
+const renderText = (text: string) => {
+  if (!text) return null;
+  
+  // Séparer par les marqueurs de gras **
+  const parts = text.split(/(\*\*.*?\*\*)/g);
+  
+  return parts.map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index} className="font-bold text-slate-800">{part.slice(2, -2)}</strong>;
+    }
+    return <span key={index}>{part}</span>;
+  });
+};
 
 const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
   const [sortBy, setSortBy] = useState<'relevance' | 'deadline'>('relevance');
@@ -150,9 +165,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
                 </div>
                 <div>
                     <h3 className="text-xl font-bold text-slate-800 mb-2">{t('results.summary_title')}</h3>
-                    <p className="text-slate-600 leading-relaxed text-base">
-                        {result.executiveSummary}
-                    </p>
+                    <div className="text-slate-600 leading-relaxed text-base">
+                        {renderText(result.executiveSummary)}
+                    </div>
                 </div>
             </div>
          </div>
@@ -178,9 +193,9 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
         {/* Sidebar Advice */}
         <div className="xl:col-span-1 space-y-6">
           <Card title={<div className="flex items-center gap-2 text-amber-600"><Lightbulb size={20} fill="currentColor" className="text-amber-100" /> {t('results.advice_title')}</div>} className="border-l-4 border-l-amber-400">
-             <p className="text-sm text-slate-600 italic leading-relaxed">
-               "{result.strategicAdvice}"
-             </p>
+             <div className="text-sm text-slate-600 italic leading-relaxed">
+               "{renderText(result.strategicAdvice)}"
+             </div>
           </Card>
 
           <Card title={<div className="flex items-center gap-2"><Globe size={18} className="text-violet-600"/> {t('results.sources_title')}</div>}>
@@ -251,14 +266,14 @@ const OpportunityCard: React.FC<{ data: GrantOpportunity, t: (k:string)=>string 
                 )}
              </div>
              
-             <h4 className="text-xl font-bold text-slate-800 group-hover:text-violet-700 transition-colors mb-1">{data.title}</h4>
+             <h4 className="text-xl font-bold text-slate-800 group-hover:text-violet-700 transition-colors mb-1">{renderText(data.title)}</h4>
              <p className="text-sm font-medium text-slate-500 mb-4">{data.provider}</p>
              
              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 relative">
                 <div className="absolute top-0 left-4 -mt-1.5 w-3 h-3 bg-slate-50 border-t border-l border-slate-100 transform rotate-45"></div>
-                <p className="text-sm text-slate-600 italic leading-relaxed">
-                   "{data.relevanceReason}"
-                </p>
+                <div className="text-sm text-slate-600 italic leading-relaxed">
+                   "{renderText(data.relevanceReason)}"
+                </div>
              </div>
 
              <div className="flex items-center gap-4 mt-5 text-xs text-slate-500 font-medium">

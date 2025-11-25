@@ -21,58 +21,57 @@ const OFFICIAL_FUNDING_URLS = [
 ];
 
 // Dictionnaire des "Pensées" de Charlotte pour l'UI
+// Mis à jour pour refléter un travail plus lent et méticuleux
 const THOUGHTS: Record<Language, Record<string, string>> = {
     fr: {
-        analyze: "J'analyse ton ADN numérique (Web & Réseaux)...",
-        search_start: "Je scanne le Web profond (Presse, Facebook, Fondations)...",
-        filtering: "Je sépare le bruit des vraies opportunités...",
-        audit_start: "Je soumets mes trouvailles à la Challengeuse...",
-        audit_refine: "Challenge reçue : j'approfondis l'investigation...",
-        audit_ok: "Audit validé ! Rédaction du rapport stratégique...",
-        finalizing: "Mise en forme finale..."
+        analyze: "Immersion dans ton dossier (Secteur & Activités)...",
+        search_start: "Investigation approfondie (Presse, Fondations, Monitor)...",
+        filtering: "Lecture des règlements et vérification des dates limites...",
+        audit_start: "Contrôle qualité par la Challengeuse...",
+        audit_refine: "Approfondissement des recherches sur demande de l'audit...",
+        audit_ok: "Confirmé. Rédaction du rapport stratégique...",
+        finalizing: "Finalisation des détails..."
     },
     nl: {
-        analyze: "Ik analyseer je digitale DNA (Web & Socials)...",
-        search_start: "Ik scan het deep web (Pers, Facebook, Stichtingen)...",
-        filtering: "Ik scheid de ruis van echte kansen...",
-        audit_start: "Ik leg mijn bevindingen voor aan de Challenger...",
-        audit_refine: "Uitdaging ontvangen: ik verdiep het onderzoek...",
-        audit_ok: "Audit gevalideerd! Strategisch rapport opstellen...",
-        finalizing: "Definitieve opmaak..."
+        analyze: "Diepgaande analyse van je dossier...",
+        search_start: "Uitgebreid onderzoek (Pers, Stichtingen, Monitor)...",
+        filtering: "Reglementen lezen en deadlines verifiëren...",
+        audit_start: "Kwaliteitscontrole door de Challenger...",
+        audit_refine: "Onderzoek verdiepen op verzoek van de audit...",
+        audit_ok: "Bevestigd. Strategisch rapport opstellen...",
+        finalizing: "Details afronden..."
     },
     de: {
-        analyze: "Ich analysiere deine digitale DNA (Web & Soziale Netzwerke)...",
-        search_start: "Ich scanne das Deep Web (Presse, Facebook, Stiftungen)...",
-        filtering: "Ich trenne das Rauschen von echten Chancen...",
-        audit_start: "Ich lege meine Ergebnisse dem Challenger vor...",
-        audit_refine: "Herausforderung angenommen: Ich vertiefe die Untersuchung...",
-        audit_ok: "Audit validiert! Erstellung des strategischen Berichts...",
-        finalizing: "Endgültige Formatierung..."
+        analyze: "Vertiefung in deine Akte...",
+        search_start: "Umfassende Untersuchung (Presse, Stiftungen)...",
+        filtering: "Lesen der Vorschriften und Überprüfung der Fristen...",
+        audit_start: "Qualitätskontrolle durch den Challenger...",
+        audit_refine: "Vertiefung der Recherche auf Anfrage...",
+        audit_ok: "Bestätigt. Erstellung des strategischen Berichts...",
+        finalizing: "Details finalisieren..."
     },
     ar: {
-        analyze: "أقوم بتحليل بصمتك الرقمية (الويب والشبكات)...",
-        search_start: "أقوم بمسح الويب العميق (الصحافة، فيسبوك، المؤسسات)...",
-        filtering: "أفصل الضجيج عن الفرص الحقيقية...",
-        audit_start: "أقدم نتايجي للمتحدي...",
-        audit_refine: "تم استلام التحدي: أقوم بتعميق التحقيق...",
-        audit_ok: "تم التحقق من التدقيق! كتابة التقرير الاستراتيجي...",
-        finalizing: "التنسيق النهائي..."
+        analyze: "تحليل متعمق لملفك...",
+        search_start: "تحقيق شامل (الصحافة، المؤسسات، المراقب)...",
+        filtering: "قراءة اللوائح والتحقق من المواعيد النهائية...",
+        audit_start: "مراقبة الجودة من قبل المدقق...",
+        audit_refine: "تعميق البحث بناءً على طلب التدقيق...",
+        audit_ok: "تم التأكيد. إعداد التقرير الاستراتيجي...",
+        finalizing: "إتمام التفاصيل..."
     }
 };
 
-// 2. Nettoyage / Parsing JSON ROBUSTE (Supporte Objets ET Tableaux)
+// 2. Nettoyage / Parsing JSON ROBUSTE
 const cleanAndParseJson = (text: string): any => {
     try {
         let cleaned = text.replace(/```json/g, "").replace(/```/g, "").trim();
         
-        // Détection intelligente : Est-ce un Objet {} ou un Tableau [] ?
         const firstCurly = cleaned.indexOf("{");
         const firstSquare = cleaned.indexOf("[");
         
         let start = -1;
         let end = -1;
 
-        // On prend le premier caractère valide trouvé
         if (firstCurly !== -1 && (firstSquare === -1 || firstCurly < firstSquare)) {
             start = firstCurly;
             end = cleaned.lastIndexOf("}");
@@ -86,8 +85,6 @@ const cleanAndParseJson = (text: string): any => {
         cleaned = cleaned.substring(start, end + 1);
         const parsed = JSON.parse(cleaned);
 
-        // CRITICAL FIX: Si l'IA renvoie un Tableau au lieu d'un Objet racine,
-        // on prend le premier élément s'il existe, sinon objet vide.
         if (Array.isArray(parsed)) {
             return parsed.length > 0 ? parsed[0] : {};
         }
@@ -95,7 +92,6 @@ const cleanAndParseJson = (text: string): any => {
         return parsed;
     } catch (err) {
         console.error("JSON parse error. Raw text received:", text);
-        // On ne throw pas ici pour permettre au processus de continuer avec un objet vide si nécessaire
         throw new Error("Oups, je n'ai pas réussi à lire ma propre réponse. (Erreur de format)");
     }
 };
@@ -140,12 +136,13 @@ const normalizeSearchResult = (raw: any, profileName: string): SearchResult => {
         url: o.url || ""
     }));
 
-    // Filtre de sécurité CRITIQUE
+    // Filtre de sécurité
     const activeAndOfficial = opportunities.filter((o: GrantOpportunity) => {
         const d = new Date(o.deadlineDate || "2099-12-31");
         if (isNaN(d.getTime()) && o.deadlineDate !== "2099-12-31") return false;
         if (o.deadlineDate !== "2099-12-31" && d < today) return false;
-        if (!o.url || o.url.length < 5) return false;
+        // On garde le filtre URL mais on accepte tout ce qui ressemble à une URL valide
+        if (!o.url || o.url.length < 8) return false;
         return true; 
     });
 
@@ -159,7 +156,7 @@ const normalizeSearchResult = (raw: any, profileName: string): SearchResult => {
     };
 };
 
-// --- AGENT B: LA CHALLENGEUSE ---
+// --- AGENT B: LA CHALLENGEUSE (AUDIT) ---
 const verifyGrants = async (rawResult: any, originalPrompt: string, language: Language = "fr") => {
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
 
@@ -170,11 +167,7 @@ const verifyGrants = async (rawResult: any, originalPrompt: string, language: La
         Règles de Vérification :
         1. FORMAT : Doit être un JSON valide avec une liste d'opportunités.
         2. CONTENU : Au moins 3 opportunités pertinentes trouvées.
-        3. SOURCES : Vérifier que les URLs sont valides.
-        
-        --- Contenu à Vérifier ---
-        PROMPT : "${originalPrompt.substring(0, 500)}..." 
-        RÉSULTAT : "${JSON.stringify(rawResult)}"
+        3. SOURCES : Vérifier que les URLs sont valides et semblent officielles.
         
         Si OK -> Réponds juste : APPROVED
         Si KO -> Réponds JSON : { "status": "REQUIRES_REFINEMENT", "errors_found": ["..."], "refinement_instructions": "..." }
@@ -207,26 +200,22 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string, language
 
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     
-    // PROMPT AMÉLIORÉ : ENQUÊTE PROFONDE (Web & Réseaux Sociaux)
     const prompt = `
         RÔLE : Enquêteur Numérique Expert pour ASBL Belges.
         CIBLE : Entité identifiée par "${enterpriseNumber}".
         
         MISSION D'INVESTIGATION (Deep Dive) :
-        1. **Identification Officielle** : Trouve le nom légal dans la BCE (Banque-Carrefour).
-        2. **Analyse d'Activité Réelle (CRUCIAL)** : Ne te limite pas aux statuts !
-           - Scanne les **Pages Facebook, LinkedIn, Instagram** pour voir les événements récents.
-           - Cherche les articles de presse récents.
-           - Trouve le site web officiel.
-        3. **Synthèse** : Rédige une description qui reflète la VRAIE vie de l'association, pas juste son objet juridique.
+        1. **Identification Officielle** : Trouve le nom légal dans la BCE.
+        2. **Analyse d'Activité Réelle** : Scanne le Web, Facebook et LinkedIn pour comprendre ce qu'ils font VRAIMENT (au-delà des statuts).
+        3. **Synthèse** : Rédige une description vivante en ${language}.
         
-        RÉPONSE JSON UNIQUE (PAS DE TABLEAU):
+        RÉPONSE JSON UNIQUE:
         {
           "name": "Nom officiel",
-          "website": "URL (Site Web ou Page Facebook principale)",
+          "website": "URL",
           "region": "Région (Bruxelles/Wallonie/Flandre)",
-          "description": "Description vivante et précise des activités réelles en ${language}.",
-          "sector": "Le secteur le plus proche parmi : ${Object.values(Sector).join(" | ")}"
+          "description": "Description vivante et précise...",
+          "sector": "Un seul parmi: ${Object.values(Sector).join(" | ")}"
         }
     `;
 
@@ -234,7 +223,7 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string, language
         const resp = await ai.models.generateContent({
             model: CONFIG.MODEL_ID,
             contents: prompt,
-            config: { tools: [{ googleSearch: {} }], temperature: 0.2 } // Temperature un peu plus haute pour la créativité de synthèse
+            config: { tools: [{ googleSearch: {} }], temperature: 0.2 }
         });
         const raw = cleanAndParseJson(resp.text || "{}");
         const normalized = normalizeProfileData(raw);
@@ -263,7 +252,7 @@ export const searchAndRefineGrants = async (
     const thoughts = THOUGHTS[language];
 
     if (onThought) onThought(thoughts.analyze);
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise(r => setTimeout(r, 1000)); // Pause pour UX
 
     const langInstructions: Record<Language, string> = {
         fr: "Réponds en Français (écriture inclusive).",
@@ -272,28 +261,26 @@ export const searchAndRefineGrants = async (
         ar: "أجب باللغة العربية."
     };
 
-    // PROMPT AMÉLIORÉ : RECHERCHE 360°
+    // PROMPT DE RECHERCHE "DEEP DIVE"
     const createPrompt = (refinement = "") => `
-        PERSONA: Charlotte, Chasseuse de Fonds d'Élite.
+        PERSONA: Charlotte, Chasseuse de Fonds d'Élite (Obsession du Détail).
+        MODE: **DEEP RESEARCH & SLOW THINKING**. Prends le temps de fouiller.
         LANGUE: ${langInstructions[language]}
+        
         MISSION: Audit 360° pour ${profile.name} (${profile.sector}, ${profile.region}).
         CONTEXTE: ${profile.description}
         
-        STRATÉGIE DE CHASSE (MULTI-CANAUX) :
-        1. **Canal Officiel** : Scanne les portails régionaux et fédéraux.
-        2. **Canal Privé/Fondations** : Cherche les appels à projets de la Fondation Roi Baudouin, Cera, Loterie Nationale, et fondations d'entreprises.
-        3. **Canal Presse/Actu** : Cherche les articles récents mentionnant "nouveau subside", "appel à projets 2024/2025" pour ce secteur.
-        4. **Analyse Concurrentielle** : Regarde ce que des ASBL similaires ont reçu récemment.
+        PROTOCOLE D'INVESTIGATION (Ne t'arrête pas au premier résultat) :
+        1. **Sources Officielles** : Scanne les moniteurs, SPW, COCOF, VLAIO.
+        2. **Sources Privées/Fondations** : Cherche activement sur le site de la Fondation Roi Baudouin, Cera, Loterie Nationale.
+        3. **Presse & Actu** : Cherche des articles récents (2024-2025) mentionnant "appel à projets" dans ce secteur.
+        4. **Validation** : Pour chaque piste, vérifie que la date limite n'est PAS passée. Si le guide 2025 n'est pas sorti, cherche le communiqué de presse.
 
-        FILTRES :
-        - Uniquement des opportunités **OUVERTES** (Pas de dates passées !).
-        - Pertinence critique par rapport à la mission décrite.
-
-        ${refinement ? `\nCORRECTION REQUISE: ${refinement}` : ""}
+        ${refinement ? `\nCORRECTION IMPÉRATIVE: ${refinement}` : ""}
         
         RÉPONSE JSON UNIQUE :
         {
-          "executiveSummary": "Synthèse percutante...",
+          "executiveSummary": "Synthèse détaillée et proactive...",
           "opportunities": [{ "title": "...", "provider": "...", "deadline": "...", "deadlineDate": "YYYY-MM-DD", "relevanceScore": 90, "relevanceReason": "...", "type": "Subside/Mécénat", "url": "..." }],
           "strategicAdvice": "...",
           "profileName": "${profile.name}"
@@ -314,7 +301,7 @@ export const searchAndRefineGrants = async (
             const resp = await ai.models.generateContent({
                 model: CONFIG.MODEL_ID,
                 contents: currentPrompt,
-                config: { tools: [{ googleSearch: {} }], temperature: 0.5 }
+                config: { tools: [{ googleSearch: {} }], temperature: 0.4 } // Température ajustée pour permettre une exploration plus large
             });
 
             raw = cleanAndParseJson(resp.text || "{}");

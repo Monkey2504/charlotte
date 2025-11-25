@@ -31,8 +31,8 @@ export const CONFIG = {
   MODEL_ID: "gemini-2.5-flash",
   
   // Paramètres
-  // Augmentation à 60s pour gérer la latence de Google Search et la lecture de sites web
-  TIMEOUT_MS: 60000, 
+  // Augmentation à 5 minutes (300s) pour la "Deep Research" sans coupure
+  TIMEOUT_MS: 300000, 
   MAX_HISTORY_ITEMS: 50,
 };
 
