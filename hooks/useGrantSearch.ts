@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { AgentState, ASBLProfile, SearchResult } from '../types';
-import { searchGrants } from '../services/geminiService';
+import { searchAndRefineGrants } from '../services/geminiService';
 import { useApp } from '../contexts/AppContext';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -15,7 +15,8 @@ export const useGrantSearch = () => {
     setCurrentResult(null);
 
     try {
-      const data = await searchGrants(profile, language);
+      // Utilisation de la nouvelle fonction CoVe (Chain of Verification)
+      const data = await searchAndRefineGrants(profile, language);
       
       const resultWithMeta = {
         ...data,
