@@ -123,7 +123,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.empty_desc': 'Ik ben je persoonlijke assistente voor financiering. Vul het formulier links in en ik ga meteen op jacht naar kansen voor jou.',
     
     'results.no_api_title': 'Brein losgekoppeld... 😴',
-    'results.no_api_desc': 'Oeps! Iemand is vergeten me mijn sleutels (API Key). Dus ik ben op verplichte vakantie. Sluit me weer aan als je wilt dat ik werk!',
+    'results.no_api_desc': 'Oeps! Iemand is vergeten me mijn sleutels (API Key) te geven. Dus ik ben op verplichte vakantie. Sluit me weer aan als je wilt dat ik werk!',
 
     'results.benefit_sort': 'Ik sorteer',
     'results.benefit_sort_desc': 'Ik toon je alleen wat écht nuttig is voor JOUW project.',
