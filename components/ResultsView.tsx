@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { SearchResult, GrantOpportunity } from '../types';
-import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, ArrowRight, Lightbulb, Sparkles, Target, TrendingUp, Search, Zap } from 'lucide-react';
+import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, ArrowRight, Lightbulb, Sparkles, Target, TrendingUp, Search, Zap, Ghost, Unplug, Download } from 'lucide-react';
 import { Card, Badge, ProgressBar, Button } from './ui/DesignSystem';
 import { useLanguage } from '../contexts/LanguageContext';
+import { hasApiKey } from '../config';
 
 interface ResultsViewProps {
   result: SearchResult | null;
@@ -51,7 +53,53 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
   const [sortBy, setSortBy] = useState<'relevance' | 'deadline'>('relevance');
   const { t } = useLanguage();
 
+  const handleDownloadAdvice = () => {
+    if (!result?.strategicAdvice) return;
+    const blob = new Blob([result.strategicAdvice], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `conseil-charlotte-${new Date().toISOString().slice(0, 10)}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   if (!result) {
+    // --- MODE "PAS DE CLÉ API" (HUMOUR) ---
+    if (!hasApiKey()) {
+      return (
+        <div className="h-full flex flex-col justify-center animate-fade-in py-8">
+           <div className="bg-white rounded-[2rem] shadow-2xl shadow-amber-200/50 border-2 border-amber-100 relative overflow-hidden max-w-4xl mx-auto">
+             {/* Amber Background Accents */}
+             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-amber-50 to-transparent rounded-bl-full pointer-events-none -mr-20 -mt-20 opacity-80"></div>
+             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-orange-50 to-transparent rounded-tr-full pointer-events-none -ml-20 -mb-20 opacity-80"></div>
+
+             <div className="p-10 md:p-14 text-center relative z-10">
+                <div className="inline-flex bg-gradient-to-br from-amber-400 to-orange-500 p-1 rounded-3xl mb-8 shadow-xl shadow-amber-500/20 animate-bounce-slow">
+                   <div className="bg-white p-6 rounded-[1.3rem]">
+                     <Unplug size={48} className="text-amber-500" />
+                   </div>
+                </div>
+                
+                <h3 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-6 font-outfit tracking-tight leading-tight">
+                  {t('results.no_api_title')}
+                </h3>
+                <p className="text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto text-lg">
+                  {t('results.no_api_desc')}
+                </p>
+
+                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 max-w-md mx-auto text-sm text-amber-800 font-medium flex items-center justify-center gap-2">
+                   <Ghost size={18} />
+                   <span>VITE_API_KEY required</span>
+                </div>
+             </div>
+           </div>
+        </div>
+      );
+    }
+
+    // --- MODE NORMAL (WELCOME) ---
     return (
       <div className="h-full flex flex-col justify-center animate-fade-in py-8">
         {/* HERO SECTION / ONBOARDING */}
@@ -173,7 +221,19 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
         </div>
 
         <div className="xl:col-span-1 space-y-6">
-          <Card title={<div className="flex items-center gap-2 text-amber-600"><Lightbulb size={20} fill="currentColor" className="text-amber-100" /> {t('results.advice_title')}</div>} className="border-l-4 border-l-amber-400">
+          <Card 
+            title={<div className="flex items-center gap-2 text-amber-600"><Lightbulb size={20} fill="currentColor" className="text-amber-100" /> {t('results.advice_title')}</div>} 
+            className="border-l-4 border-l-amber-400"
+            action={
+              <button 
+                onClick={handleDownloadAdvice}
+                className="text-amber-600 hover:text-amber-800 hover:bg-amber-100 p-2 rounded-lg transition-colors"
+                title={t('results.download_advice')}
+              >
+                <Download size={18} />
+              </button>
+            }
+          >
              <div className="text-sm italic">
                <FormattedText text={result.strategicAdvice} />
              </div>

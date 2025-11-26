@@ -123,11 +123,12 @@ export const Select: React.FC<SelectProps> = ({ label, leftIcon, options, classN
 
 // --- CARDS ---
 // Changement majeur : "Soft UI" - Moins de bordures, plus d'ombres douces
-export const Card: React.FC<{ children: React.ReactNode; className?: string; title?: React.ReactNode }> = ({ children, className = '', title }) => (
+export const Card: React.FC<{ children: React.ReactNode; className?: string; title?: React.ReactNode; action?: React.ReactNode }> = ({ children, className = '', title, action }) => (
   <div className={cn("bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-white/20 ring-1 ring-slate-100", className)}>
-    {title && (
-      <div className="px-6 py-5 border-b border-slate-50/80 bg-slate-50/30 rounded-t-3xl backdrop-blur-sm">
-        <h3 className="text-lg font-bold text-slate-800 tracking-tight">{title}</h3>
+    {(title || action) && (
+      <div className="px-6 py-5 border-b border-slate-50/80 bg-slate-50/30 rounded-t-3xl backdrop-blur-sm flex justify-between items-center gap-4">
+        {title && <h3 className="text-lg font-bold text-slate-800 tracking-tight">{title}</h3>}
+        {action && <div className="shrink-0">{action}</div>}
       </div>
     )}
     <div className="p-6">{children}</div>

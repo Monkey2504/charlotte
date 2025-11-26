@@ -28,7 +28,9 @@ const DEFAULT_PROFILE: ASBLProfile = {
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [currentProfile, setCurrentProfile] = useState<ASBLProfile>(DEFAULT_PROFILE);
-  const [requestCount, setRequestCount] = useState<number>(0);
+  
+  // Démarrage à 350 pour l'effet "Startup"
+  const [requestCount, setRequestCount] = useState<number>(350); 
 
   useEffect(() => {
     const initData = async () => {
@@ -39,9 +41,28 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       if (storedProfile) setCurrentProfile({ ...DEFAULT_PROFILE, ...storedProfile });
 
       const storedCount = await persistenceService.getRequestCount();
-      setRequestCount(storedCount);
+      // On s'assure que le compteur ne descend jamais en dessous de 350
+      setRequestCount(storedCount > 350 ? storedCount : 350); 
     };
     initData();
+
+    // --- EFFET STARTUP ---
+    // Simule une activité globale sur la plateforme.
+    // Le compteur augmente tout seul de temps en temps pour montrer que "ça bouge".
+    const interval = setInterval(() => {
+      setRequestCount(prev => {
+        // 30% de chance d'augmenter toutes les 3 secondes
+        const shouldIncrement = Math.random() > 0.7;
+        if (shouldIncrement) {
+          // On ne sauvegarde pas forcément ces fausses augmentations pour ne pas polluer le localStorage de l'utilisateur,
+          // ou on peut le faire si on veut que ça persiste. Ici, c'est purement visuel pour la session.
+          return prev + 1;
+        }
+        return prev;
+      });
+    }, 3000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const addToHistory = (result: SearchResult) => {
@@ -53,6 +74,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       return updated;
     });
 
+    // Incrémentation réelle lors d'une recherche utilisateur
     setRequestCount(prev => {
       const newCount = prev + 1;
       persistenceService.saveRequestCount(newCount);

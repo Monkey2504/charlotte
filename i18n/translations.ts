@@ -46,6 +46,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.error_title': 'Oups !',
     'results.empty_title': 'Coucou, moi c\'est Charlotte !',
     'results.empty_desc': 'Je suis ton assistante personnelle dédiée au financement. Remplis le formulaire à gauche, et je pars immédiatement à la chasse aux opportunités pour toi.',
+    
+    'results.no_api_title': 'Cerveau déconnecté... 😴',
+    'results.no_api_desc': 'Oups ! On dirait qu\'on a oublié de me donner mes clés (API Key). Du coup, je suis en vacances forcées aux Bahamas numériques. Rebranchez-moi si vous voulez que je bosse !',
+
     'results.benefit_sort': 'Je trie',
     'results.benefit_sort_desc': 'Je ne te montre que ce qui est vraiment utile pour TON projet.',
     'results.benefit_find': 'Je déniche',
@@ -62,6 +66,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.sort_deadline': 'Les plus urgents',
     'results.summary_title': 'Mon résumé pour toi',
     'results.advice_title': 'Mon conseil d\'amie',
+    'results.download_advice': 'Télécharger mon conseil',
     'results.sources_title': 'Où j\'ai trouvé ça',
     'results.sources_empty': 'Je n\'ai pas de lien direct, mais Google est aussi ton allié !',
     'results.disclaimer': 'Je fais de mon mieux pour t\'aider, mais vérifie toujours les détails officiels, d\'accord ?',
@@ -116,6 +121,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.error_title': 'Oeps!',
     'results.empty_title': 'Hallo, ik ben Charlotte!',
     'results.empty_desc': 'Ik ben je persoonlijke assistente voor financiering. Vul het formulier links in en ik ga meteen op jacht naar kansen voor jou.',
+    
+    'results.no_api_title': 'Brein losgekoppeld... 😴',
+    'results.no_api_desc': 'Oeps! Iemand is vergeten me mijn sleutels (API Key). Dus ik ben op verplichte vakantie. Sluit me weer aan als je wilt dat ik werk!',
+
     'results.benefit_sort': 'Ik sorteer',
     'results.benefit_sort_desc': 'Ik toon je alleen wat écht nuttig is voor JOUW project.',
     'results.benefit_find': 'Ik spoor op',
@@ -132,6 +141,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.sort_deadline': 'Dringendste',
     'results.summary_title': 'Mijn samenvatting voor jou',
     'results.advice_title': 'Mijn vriendinnenadvies',
+    'results.download_advice': 'Advies downloaden',
     'results.sources_title': 'Waar ik dit vond',
     'results.sources_empty': 'Geen directe link, maar Google is ook jouw vriend!',
     'results.disclaimer': 'Ik doe mijn best om te helpen, maar check altijd de officiële details, oké?',
@@ -186,6 +196,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.error_title': 'Hoppla!',
     'results.empty_title': 'Hallo, ich bin Charlotte!',
     'results.empty_desc': 'Ich bin deine persönliche Finanzierungsassistentin. Fülle das Formular links aus und ich gehe sofort auf Chancenjagd für dich.',
+    
+    'results.no_api_title': 'Gehirn getrennt... 😴',
+    'results.no_api_desc': 'Hoppla! Jemand hat vergessen, mir meine Schlüssel (API-Key) zu geben. Also bin ich im Zwangs-Urlaub. Schließ mich wieder an, wenn ich arbeiten soll!',
+
     'results.benefit_sort': 'Ich sortiere',
     'results.benefit_sort_desc': 'Ich zeige dir nur, was für DEIN Projekt wirklich nützlich ist.',
     'results.benefit_find': 'Ich stöbere auf',
@@ -202,6 +216,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.sort_deadline': 'Am dringendsten',
     'results.summary_title': 'Meine Zusammenfassung für dich',
     'results.advice_title': 'Mein Rat als Freundin',
+    'results.download_advice': 'Ratschlag herunterladen',
     'results.sources_title': 'Wo ich das gefunden habe',
     'results.sources_empty': 'Kein direkter Link, aber Google ist auch dein Freund!',
     'results.disclaimer': 'Ich tue mein Bestes, aber überprüfe immer die offiziellen Details, okay?',
@@ -256,6 +271,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.error_title': 'عفواً!',
     'results.empty_title': 'مرحباً، أنا شارلوت!',
     'results.empty_desc': 'أنا مساعدتك الشخصية المخصصة للتمويل. املئي النموذج على اليسار، وسأبدأ فوراً في صيد الفرص لك.',
+    
+    'results.no_api_title': 'الدماغ مفصول... 😴',
+    'results.no_api_desc': 'عفواً! يبدو أن أحدهم نسي أن يعطيني مفاتيحي (API Key). لذا أنا في إجازة إجبارية. أعيدوا توصيلي إذا أردتم مني العمل!',
+
     'results.benefit_sort': 'أنا أرتب',
     'results.benefit_sort_desc': 'لا أعرض لك إلا ما هو مفيد حقاً لمشروعك.',
     'results.benefit_find': 'أنا أكتشف',
@@ -272,6 +291,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.sort_deadline': 'الأكثر إلحاحاً',
     'results.summary_title': 'ملخصي لك',
     'results.advice_title': 'نصيحتي لك كصديقة',
+    'results.download_advice': 'تحميل النصيحة',
     'results.sources_title': 'أين وجدت هذا',
     'results.sources_empty': 'لا يوجد رابط مباشر، لكن جوجل صديقك أيضاً!',
     'results.disclaimer': 'أبذل قصارى جهدي لمساعدتك، لكن تحققي دائماً من التفاصيل الرسمية، حسناً؟',

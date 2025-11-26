@@ -131,15 +131,20 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
               <div className="overflow-hidden w-full">
                  <div className="flex justify-between items-center w-full">
                    <p className="text-sm font-bold truncate text-slate-200">{t('nav.association')}</p>
-                   {/* Desktop counter with animation */}
-                   <AnimatedCounter 
-                     value={requestCount} 
-                     className="text-[10px] bg-violet-500/20 text-violet-300 px-2 py-0.5 rounded-full font-mono" 
-                   />
+                   {/* Desktop counter with "Live" pulsing dot */}
+                   <div className="flex items-center gap-1.5 bg-violet-500/20 px-2 py-0.5 rounded-full border border-violet-500/30">
+                      <span className="relative flex h-1.5 w-1.5 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                      </span>
+                      <AnimatedCounter 
+                         value={requestCount} 
+                         className="text-[10px] font-mono font-bold text-violet-200" 
+                      />
+                   </div>
                  </div>
                  <div className="flex justify-between items-center mt-1">
                    <p className="text-[10px] text-emerald-400 truncate flex items-center gap-1.5 font-medium">
-                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_5px_rgba(52,211,153,0.5)]"></span>
                      {t('nav.connected')}
                    </p>
                    <p className="text-[9px] text-slate-500 uppercase tracking-wide">{t('nav.requests')}</p>
@@ -197,10 +202,16 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                    <span className="text-slate-300 font-medium">{t('nav.requests')}</span>
                 </div>
                 {/* Mobile counter with animation */}
-                <AnimatedCounter 
-                  value={requestCount} 
-                  className="bg-violet-600 text-white px-3 py-1 rounded-lg text-sm font-bold shadow-lg shadow-violet-900/50" 
-                />
+                <div className="flex items-center gap-2 bg-violet-600 px-3 py-1 rounded-lg shadow-lg shadow-violet-900/50">
+                   <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                   </span>
+                   <AnimatedCounter 
+                     value={requestCount} 
+                     className="text-white text-sm font-bold font-mono" 
+                   />
+                </div>
              </div>
           </div>
         </div>

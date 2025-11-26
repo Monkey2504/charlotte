@@ -43,3 +43,7 @@ export const getApiKey = (): string => {
   }
   return CONFIG.API_KEY;
 };
+
+export const hasApiKey = (): boolean => {
+  return !!CONFIG.API_KEY && CONFIG.API_KEY.trim().length > 0;
+};
