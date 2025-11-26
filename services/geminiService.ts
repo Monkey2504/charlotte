@@ -71,56 +71,61 @@ const THOUGHTS: Record<Language, Record<string, string>> = {
 const cleanAndParseJson = (text: string): any => {
     if (!text) return {};
 
-    try {
-        // 1. Enlever les blocs de code Markdown
-        let cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
-        
-        // 2. Correction des erreurs communes de LLM (clés en Markdown)
-        cleaned = cleaned.replace(/\*\*([a-zA-Z0-9_]+)\*\*:/g, '"$1":');
-        
-        // 3. Extraction chirurgicale du bloc JSON
-        // On cherche le premier '[' ou '{'
-        const firstSquare = cleaned.indexOf("[");
-        const firstCurly = cleaned.indexOf("{");
-        
-        let startIdx = -1;
-        let endIdx = -1;
-
-        // Logique de priorité : on prend le premier qui apparaît
-        if (firstSquare !== -1 && (firstCurly === -1 || firstSquare < firstCurly)) {
-            startIdx = firstSquare;
-            endIdx = cleaned.lastIndexOf("]");
-        } else if (firstCurly !== -1) {
-            startIdx = firstCurly;
-            endIdx = cleaned.lastIndexOf("}");
+    // 1. Nettoyage préliminaire
+    // On enlève le markdown code blocks et on trim
+    let cleaned = text.replace(/```json/gi, "").replace(/```/g, "").trim();
+    
+    // Helper de parsing avec correction d'erreurs mineures (clés markdown)
+    const tryParse = (str: string): any | null => {
+        try {
+            // Correction keys: **key**: -> "key":
+            const fixed = str.replace(/\*\*([a-zA-Z0-9_]+)\*\*:/g, '"$1":');
+            return JSON.parse(fixed);
+        } catch (e) {
+            return null;
         }
+    };
 
-        if (startIdx === -1 || endIdx === -1) {
-            console.warn("JSON Parser: Aucun délimiteur trouvé, retour objet vide.");
-            return {};
+    // 2. Priorité 1 : Chercher un OBJET JSON {}
+    // C'est le format demandé explicitement dans les prompts.
+    const firstCurly = cleaned.indexOf("{");
+    const lastCurly = cleaned.lastIndexOf("}");
+    
+    if (firstCurly !== -1 && lastCurly > firstCurly) {
+        const potentialObj = cleaned.substring(firstCurly, lastCurly + 1);
+        const result = tryParse(potentialObj);
+        if (result) {
+            // Si c'est un tableau enveloppé par erreur dans des accolades (peu probable mais possible)
+            // on le traite comme un objet valide.
+            return result;
         }
-
-        const jsonString = cleaned.substring(startIdx, endIdx + 1);
-        const parsed = JSON.parse(jsonString);
-
-        // 4. Normalisation de la racine (On veut un Objet, pas un Tableau)
-        if (Array.isArray(parsed)) {
-            // Si c'est un tableau, on suppose que c'est la liste des opportunités
-            // ou une liste d'objets résultats. On prend le premier ou on enveloppe.
-            if (parsed.length > 0 && parsed[0].opportunities) {
-                return parsed[0];
-            }
-            // Fallback: on enveloppe dans un objet
-            return { opportunities: parsed };
-        }
-        
-        return parsed;
-    } catch (err) {
-        console.error("CRITICAL JSON PARSE ERROR", err);
-        console.debug("Faulty JSON Text:", text);
-        // Fail-safe: retour objet vide pour ne pas crasher l'UI
-        return {}; 
     }
+
+    // 3. Priorité 2 : Chercher un TABLEAU JSON []
+    // Fallback si le modèle renvoie une liste directe.
+    const firstSquare = cleaned.indexOf("[");
+    const lastSquare = cleaned.lastIndexOf("]");
+    
+    if (firstSquare !== -1 && lastSquare > firstSquare) {
+        const potentialArr = cleaned.substring(firstSquare, lastSquare + 1);
+        
+        // Petite heuristique pour éviter de perdre du temps sur des [liens]
+        // Un JSON array valide ne commence pas par 'http' juste après le crochet
+        if (!potentialArr.match(/^\[\s*http/i)) {
+            const result = tryParse(potentialArr);
+            if (result && Array.isArray(result)) {
+                // Normalisation : On veut toujours retourner un objet racine
+                if (result.length > 0 && result[0].opportunities) {
+                    return result[0];
+                }
+                return { opportunities: result };
+            }
+        }
+    }
+
+    console.warn("JSON Parser: Aucune structure JSON valide trouvée.");
+    // console.debug("Raw Text:", text); // Uncomment for debugging
+    return {};
 };
 
 // 3. Normalisation Profil (Type Guarding)
