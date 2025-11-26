@@ -1,24 +1,8 @@
+
 import { GoogleGenAI } from "@google/genai";
 import { ASBLProfile, SearchResult, Sector, Language, GrantOpportunity } from "../types";
 import { CONFIG, getApiKey } from "../config";
 import { persistenceService } from "./persistence";
-
-// 1. SOURCES OFFICIELLES (Grounding strict)
-const OFFICIAL_FUNDING_URLS = [
-    "https://ec.europa.eu",
-    "https://demandes-subside.loterie-nationale.be",
-    "https://www.kbs-frb.be",
-    "https://economie.fgov.be",
-    "https://www.spf-pensions.be",
-    "https://infrastructures.wallonie.be",
-    "https://www.wallonie.be",
-    "https://www.aviq.be",
-    "https://www.cocof.be",
-    "https://www.innoviris.brussels",
-    "https://be.brussels",
-    "https://werk-economie-emploi.brussels",
-    "https://www.vlaio.be"
-];
 
 // Dictionnaire des "Pensées" de Charlotte
 const THOUGHTS: Record<Language, Record<string, string>> = {

@@ -62,6 +62,7 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url); // Clean up memory
   };
 
   if (!result) {
