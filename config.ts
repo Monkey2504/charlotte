@@ -2,30 +2,32 @@
 // Fonction utilitaire pour récupérer les variables d'environnement de manière sécurisée
 // Fonctionne à la fois sur Vite (import.meta.env) et Node/Webpack (process.env)
 const getEnv = () => {
+  const envs: any = {};
+
   // 1. Essayer Vite (Standard moderne)
   try {
     // @ts-ignore
     if (typeof import.meta !== 'undefined' && import.meta.env) {
       // @ts-ignore
-      return import.meta.env;
+      Object.assign(envs, import.meta.env);
     }
   } catch (e) {}
 
   // 2. Essayer Node.js / Webpack (Standard ancien)
   try {
     if (typeof process !== 'undefined' && process.env) {
-      return process.env;
+      Object.assign(envs, process.env);
     }
   } catch (e) {}
   
-  return {};
+  return envs;
 };
 
 const ENV = getEnv();
 
 export const CONFIG = {
-  // On cherche d'abord VITE_API_KEY (convention Vite), sinon API_KEY
-  API_KEY: ENV.VITE_API_KEY || ENV.API_KEY || "",
+  // On cherche d'abord VITE_API_KEY, puis API_KEY, puis d'autres formats courants
+  API_KEY: ENV.VITE_API_KEY || ENV.API_KEY || ENV.REACT_APP_API_KEY || ENV.NEXT_PUBLIC_API_KEY || "",
   
   // Modèles
   MODEL_ID: "gemini-2.5-flash",

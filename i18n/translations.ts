@@ -49,6 +49,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'results.no_api_title': 'Cerveau déconnecté... 😴',
     'results.no_api_desc': 'Oups ! On dirait qu\'on a oublié de me donner mes clés (API Key). Du coup, je suis en vacances forcées aux Bahamas numériques. Rebranchez-moi si vous voulez que je bosse !',
+    'results.no_api_bypass': 'Juste jeter un œil (Mode Démo)',
 
     'results.benefit_sort': 'Je trie',
     'results.benefit_sort_desc': 'Je ne te montre que ce qui est vraiment utile pour TON projet.',
@@ -124,6 +125,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'results.no_api_title': 'Brein losgekoppeld... 😴',
     'results.no_api_desc': 'Oeps! Iemand is vergeten me mijn sleutels (API Key) te geven. Dus ik ben op verplichte vakantie. Sluit me weer aan als je wilt dat ik werk!',
+    'results.no_api_bypass': 'Gewoon even kijken (Demo Modus)',
 
     'results.benefit_sort': 'Ik sorteer',
     'results.benefit_sort_desc': 'Ik toon je alleen wat écht nuttig is voor JOUW project.',
@@ -199,6 +201,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'results.no_api_title': 'Gehirn getrennt... 😴',
     'results.no_api_desc': 'Hoppla! Jemand hat vergessen, mir meine Schlüssel (API-Key) zu geben. Also bin ich im Zwangs-Urlaub. Schließ mich wieder an, wenn ich arbeiten soll!',
+    'results.no_api_bypass': 'Nur mal schauen (Demo Modus)',
 
     'results.benefit_sort': 'Ich sortiere',
     'results.benefit_sort_desc': 'Ich zeige dir nur, was für DEIN Projekt wirklich nützlich ist.',
@@ -274,6 +277,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'results.no_api_title': 'الدماغ مفصول... 😴',
     'results.no_api_desc': 'عفواً! يبدو أن أحدهم نسي أن يعطيني مفاتيحي (API Key). لذا أنا في إجازة إجبارية. أعيدوا توصيلي إذا أردتم مني العمل!',
+    'results.no_api_bypass': 'مجرد إلقاء نظرة (وضع تجريبي)',
 
     'results.benefit_sort': 'أنا أرتب',
     'results.benefit_sort_desc': 'لا أعرض لك إلا ما هو مفيد حقاً لمشروعك.',
