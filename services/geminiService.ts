@@ -93,9 +93,10 @@ const cleanAndParseJson = (text: string): any => {
     if (firstSquare !== -1 && lastSquare > firstSquare) {
         const potentialArr = cleaned.substring(firstSquare, lastSquare + 1);
         
-        // Petite heuristique pour éviter de perdre du temps sur des [liens]
-        // Un JSON array valide ne commence pas par 'http' juste après le crochet
-        if (!potentialArr.match(/^\[\s*http/i)) {
+        // Petite heuristique pour éviter de perdre du temps sur des [liens markdown]
+        // On vérifie que ce n'est pas juste un lien markdown qui commence par [http
+        const contentInside = potentialArr.slice(1, -1).trim();
+        if (!contentInside.toLowerCase().startsWith('http')) {
             const result = tryParse(potentialArr);
             if (result && Array.isArray(result)) {
                 // Normalisation : On veut toujours retourner un objet racine
@@ -163,10 +164,9 @@ const normalizeSearchResult = (raw: any, profileName: string): SearchResult => {
         // Date passée ? On jette (strict)
         if (o.deadlineDate !== "2099-12-31" && d < today) return false;
         
-        // FIX: Suppression du filtre URL strict.
-        // On accepte les opportunités sans URL car le modèle les trouve parfois via Grounding
-        // sans copier l'URL dans le JSON. L'UI gérera le fallback.
-        // if (!o.url || o.url.length < 8) return false;
+        // Note: Nous ne filtrons PLUS les opportunités sans URL.
+        // L'IA trouve souvent des opportunités pertinentes via Grounding sans pouvoir extraire l'URL exacte.
+        // L'interface utilisateur proposera un bouton "Rechercher sur Google" en fallback.
         
         return true; 
     });
@@ -191,8 +191,8 @@ const verifyGrants = async (rawResult: any, originalPrompt: string, language: La
         
         FAIL CONDITIONS:
         1. JSON syntax is broken.
-        2. "opportunities" array is empty or has < 2 items.
-        3. If URLs are present, they must not look fake (e.g. "http://site.com"). Empty URLs are acceptable if content is valid.
+        2. "opportunities" array is empty.
+        3. Note: Empty URLs are ACCEPTABLE if the opportunity looks real. Do NOT reject based on missing URLs.
         
         INPUT:
         ${JSON.stringify(rawResult)}
@@ -210,7 +210,9 @@ const verifyGrants = async (rawResult: any, originalPrompt: string, language: La
         });
         
         const text = resp.text?.trim();
-        if (text && text.includes("APPROVED")) return { status: "APPROVED" };
+        // Check strict pour éviter les faux positifs (ex: "NOT APPROVED")
+        if (text && text.includes("APPROVED") && !text.includes("NOT APPROVED")) return { status: "APPROVED" };
+        
         return cleanAndParseJson(text || "{}");
 
     } catch (err) {
