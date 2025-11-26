@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
 import { SearchResult, GrantOpportunity } from '../types';
-import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, ArrowRight, Lightbulb, Sparkles, Target, TrendingUp, Search, Zap, Ghost, Unplug, Download, Eye } from 'lucide-react';
+import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, Lightbulb, Sparkles, Target, TrendingUp, Search, Zap, Download } from 'lucide-react';
 import { Card, Badge, ProgressBar, Button } from './ui/DesignSystem';
 import { useLanguage } from '../contexts/LanguageContext';
-import { hasApiKey } from '../config';
 
 interface ResultsViewProps {
   result: SearchResult | null;
@@ -51,7 +50,6 @@ const parseBold = (text: string) => {
 
 const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
   const [sortBy, setSortBy] = useState<'relevance' | 'deadline'>('relevance');
-  const [bypassApiCheck, setBypassApiCheck] = useState(false);
   const { t } = useLanguage();
 
   const handleDownloadAdvice = () => {
@@ -67,48 +65,6 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
   };
 
   if (!result) {
-    // --- MODE "PAS DE CLÉ API" (HUMOUR) ---
-    // Si pas de clé et pas de bypass, on affiche l'écran de blocage
-    if (!hasApiKey() && !bypassApiCheck) {
-      return (
-        <div className="h-full flex flex-col justify-center animate-fade-in py-8">
-           <div className="bg-white rounded-[2rem] shadow-2xl shadow-amber-200/50 border-2 border-amber-100 relative overflow-hidden max-w-4xl mx-auto w-full">
-             {/* Amber Background Accents */}
-             <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-bl from-amber-50 to-transparent rounded-bl-full pointer-events-none -mr-20 -mt-20 opacity-80"></div>
-             <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-gradient-to-tr from-orange-50 to-transparent rounded-tr-full pointer-events-none -ml-20 -mb-20 opacity-80"></div>
-
-             <div className="p-10 md:p-14 text-center relative z-10 flex flex-col items-center">
-                <div className="inline-flex bg-gradient-to-br from-amber-400 to-orange-500 p-1 rounded-3xl mb-8 shadow-xl shadow-amber-500/20 animate-bounce-slow">
-                   <div className="bg-white p-6 rounded-[1.3rem]">
-                     <Unplug size={48} className="text-amber-500" />
-                   </div>
-                </div>
-                
-                <h3 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-6 font-outfit tracking-tight leading-tight">
-                  {t('results.no_api_title')}
-                </h3>
-                <p className="text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto text-lg">
-                  {t('results.no_api_desc')}
-                </p>
-
-                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 max-w-md mx-auto text-sm text-amber-800 font-medium flex items-center justify-center gap-2 mb-8">
-                   <Ghost size={18} />
-                   <span>VITE_API_KEY required</span>
-                </div>
-
-                <button 
-                  onClick={() => setBypassApiCheck(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-white border border-amber-200 text-amber-700 font-bold rounded-xl hover:bg-amber-50 transition-colors shadow-sm"
-                >
-                  <Eye size={18} />
-                  {t('results.no_api_bypass')}
-                </button>
-             </div>
-           </div>
-        </div>
-      );
-    }
-
     // --- MODE NORMAL (WELCOME) ---
     return (
       <div className="h-full flex flex-col justify-center animate-fade-in py-8">
