@@ -1,12 +1,13 @@
 
 import React, { useState } from 'react';
 import { SearchResult, GrantOpportunity } from '../types';
-import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, Lightbulb, Sparkles, Target, TrendingUp, Search, Zap, Download } from 'lucide-react';
+import { ExternalLink, Calendar, Globe, ShieldCheck, Trophy, Lightbulb, Sparkles, Target, TrendingUp, Search, Zap, Download, Dices } from 'lucide-react';
 import { Card, Badge, ProgressBar, Button } from './ui/DesignSystem';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface ResultsViewProps {
   result: SearchResult | null;
+  onLoadExample?: () => void;
 }
 
 // --- SENIOR TEXT RENDERER ---
@@ -48,7 +49,7 @@ const parseBold = (text: string) => {
   });
 };
 
-const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
+const ResultsView: React.FC<ResultsViewProps> = ({ result, onLoadExample }) => {
   const [sortBy, setSortBy] = useState<'relevance' | 'deadline'>('relevance');
   const { t } = useLanguage();
 
@@ -84,9 +85,21 @@ const ResultsView: React.FC<ResultsViewProps> = ({ result }) => {
               <h3 className="text-3xl md:text-4xl font-extrabold text-slate-800 mb-6 font-outfit tracking-tight leading-tight">
                 {t('results.empty_title')}
               </h3>
-              <p className="text-slate-600 mb-12 leading-relaxed max-w-xl mx-auto text-lg font-light">
+              <p className="text-slate-600 mb-8 leading-relaxed max-w-xl mx-auto text-lg font-light">
                 {t('results.empty_desc')}
               </p>
+              
+              {onLoadExample && (
+                <div className="mb-12">
+                  <button 
+                    onClick={onLoadExample}
+                    className="inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-gradient-to-r from-violet-50 to-indigo-50 text-violet-700 font-bold text-sm hover:from-violet-100 hover:to-indigo-100 hover:shadow-lg hover:shadow-violet-200 transition-all border border-violet-100 group"
+                  >
+                    <Dices size={20} className="group-hover:rotate-180 transition-transform duration-500" />
+                    {t('results.btn_demo')}
+                  </button>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-start mb-12">
                  <BenefitCard icon={<Target size={20} />} title={t('results.benefit_sort')} desc={t('results.benefit_sort_desc')} color="amber" />

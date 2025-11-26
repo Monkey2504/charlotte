@@ -163,8 +163,10 @@ const normalizeSearchResult = (raw: any, profileName: string): SearchResult => {
         // Date passée ? On jette (strict)
         if (o.deadlineDate !== "2099-12-31" && d < today) return false;
         
-        // URL trop courte ou manquante ? On jette (hallucination probable)
-        if (!o.url || o.url.length < 8) return false;
+        // FIX: Suppression du filtre URL strict.
+        // On accepte les opportunités sans URL car le modèle les trouve parfois via Grounding
+        // sans copier l'URL dans le JSON. L'UI gérera le fallback.
+        // if (!o.url || o.url.length < 8) return false;
         
         return true; 
     });
@@ -190,7 +192,7 @@ const verifyGrants = async (rawResult: any, originalPrompt: string, language: La
         FAIL CONDITIONS:
         1. JSON syntax is broken.
         2. "opportunities" array is empty or has < 2 items.
-        3. URLs look fake (e.g., "http://site.com").
+        3. If URLs are present, they must not look fake (e.g. "http://site.com"). Empty URLs are acceptable if content is valid.
         
         INPUT:
         ${JSON.stringify(rawResult)}
@@ -219,7 +221,8 @@ const verifyGrants = async (rawResult: any, originalPrompt: string, language: La
 // --- FONCTIONS EXPORTÉES ---
 
 export const enrichProfileFromNumber = async (enterpriseNumber: string, language: Language = "fr"): Promise<Partial<ASBLProfile>> => {
-    const cacheKey = enterpriseNumber.trim();
+    const cleanNumber = enterpriseNumber.trim();
+    const cacheKey = cleanNumber;
     try {
         const cache = await persistenceService.getEnrichmentCache();
         if (cache.has(cacheKey)) return cache.get(cacheKey)!;
@@ -227,10 +230,30 @@ export const enrichProfileFromNumber = async (enterpriseNumber: string, language
 
     const ai = new GoogleGenAI({ apiKey: getApiKey() });
     
+    // Prompt renforcé pour mieux trouver les ASBL belges même avec un format approximatif
     const prompt = `
-        TASK: Extract official data for Belgian Entity "${enterpriseNumber}".
-        FORMAT: JSON Only.
-        FIELDS: name, website, region (Bruxelles/Wallonie/Flandre), description (in ${language}), sector (choose closest from: ${Object.values(Sector).join(", ")}).
+        CONTEXT: User is searching for a Belgian Non-Profit (ASBL/VZW) or Company.
+        QUERY: "${cleanNumber}"
+        
+        TASK: Search for this entity in Belgium (BCE/KBO/Staatsblad/Companyweb). 
+        If the query is a number (like 0456.789.123 or 0456789123), it's a CBE/KBO number.
+        If it's a name, find the official legal entity.
+
+        Identify:
+        1. Official Name
+        2. Sector (Social, Culture, Sport, etc.)
+        3. Region (Bruxelles, Wallonie, Flandre)
+        4. Description of activities (What do they do?)
+        5. Website (if any)
+        
+        OUTPUT FORMAT: JSON Only.
+        {
+            "name": "Official Name",
+            "website": "url",
+            "region": "Region",
+            "description": "Summary in ${language}",
+            "sector": "Closest match from: ${Object.values(Sector).join(", ")}"
+        }
     `;
 
     try {

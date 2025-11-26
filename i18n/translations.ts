@@ -16,6 +16,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'form.title': 'Parle-moi de ton projet',
     'form.subtitle': 'Pour que je puisse t\'aider efficacement, j\'ai besoin de mieux te connaître. Plus tu es précis·e, plus mes trouvailles seront pertinentes !',
+    'form.btn_example': '✨ Exemple',
     
     'form.type_entity': 'Structure existante (ASBL/Entreprise)',
     'form.type_individual': 'Porteur·se de projet / Particulier',
@@ -46,6 +47,7 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.error_title': 'Oups !',
     'results.empty_title': 'Coucou, moi c\'est Charlotte !',
     'results.empty_desc': 'Je suis ton assistante personnelle dédiée au financement. Remplis le formulaire à gauche, et je pars immédiatement à la chasse aux opportunités pour toi.',
+    'results.btn_demo': '🎲 Essayer une démo',
     
     'results.no_api_title': 'Cerveau déconnecté... 😴',
     'results.no_api_desc': 'Oups ! On dirait qu\'on a oublié de me donner mes clés (API Key). Du coup, je suis en vacances forcées aux Bahamas numériques. Rebranchez-moi si vous voulez que je bosse !',
@@ -95,6 +97,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'form.title': 'Vertel me over je project',
     'form.subtitle': 'Om je goed te kunnen helpen, moet ik je beter leren kennen. Hoe preciezer je bent, hoe relevanter mijn vondsten!',
+    'form.btn_example': '✨ Voorbeeld',
+
     'form.type_entity': 'Bestaande structuur (VZW/Bedrijf)',
     'form.type_individual': 'Projectdrager / Particulier',
     'form.individual_warning': '⚠️ Let op: Charlotte is geoptimaliseerd voor geregistreerde structuren. Voor particulieren zijn de resultaten beperkter.',
@@ -122,9 +126,10 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.error_title': 'Oeps!',
     'results.empty_title': 'Hallo, ik ben Charlotte!',
     'results.empty_desc': 'Ik ben je persoonlijke assistente voor financiering. Vul het formulier links in en ik ga meteen op jacht naar kansen voor jou.',
-    
+    'results.btn_demo': '🎲 Bekijk voorbeeld',
+
     'results.no_api_title': 'Brein losgekoppeld... 😴',
-    'results.no_api_desc': 'Oeps! Iemand is vergeten me mijn sleutels (API Key) te geven. Dus ik ben op verplichte vakantie. Sluit me weer aan als je wilt dat ik werk!',
+    'results.no_api_desc': 'Oeps! Iemand is vergeten me mijn sleutels (API Key). Dus ik ben op verplichte vakantie. Sluit me weer aan als je wilt dat ik werk!',
     'results.no_api_bypass': 'Gewoon even kijken (Demo Modus)',
 
     'results.benefit_sort': 'Ik sorteer',
@@ -171,6 +176,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'form.title': 'Erzähl mir von deinem Projekt',
     'form.subtitle': 'Um dir effektiv helfen zu können, muss ich dich besser kennenlernen. Je genauer du bist, desto relevanter meine Funde!',
+    'form.btn_example': '✨ Beispiel',
+
     'form.type_entity': 'Bestehende Struktur (Vb/Unternehmen)',
     'form.type_individual': 'Projektträger / Einzelperson',
     'form.individual_warning': '⚠️ Achtung: Charlotte ist für registrierte Strukturen optimiert. Für Einzelpersonen sind die Ergebnisse begrenzter.',
@@ -198,7 +205,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.error_title': 'Hoppla!',
     'results.empty_title': 'Hallo, ich bin Charlotte!',
     'results.empty_desc': 'Ich bin deine persönliche Finanzierungsassistentin. Fülle das Formular links aus und ich gehe sofort auf Chancenjagd für dich.',
-    
+    'results.btn_demo': '🎲 Beispiel ansehen',
+
     'results.no_api_title': 'Gehirn getrennt... 😴',
     'results.no_api_desc': 'Hoppla! Jemand hat vergessen, mir meine Schlüssel (API-Key) zu geben. Also bin ich im Zwangs-Urlaub. Schließ mich wieder an, wenn ich arbeiten soll!',
     'results.no_api_bypass': 'Nur mal schauen (Demo Modus)',
@@ -247,6 +255,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     
     'form.title': 'أخبريني عن مشروعك',
     'form.subtitle': 'لكي أساعدك بفعالية، أحتاج لمعرفتك بشكل أفضل. كلما كنتِ دقيقة، كانت النتائج أكثر صلة!',
+    'form.btn_example': '✨ مثال',
+
     'form.type_entity': 'هيكل قائم (جمعية/شركة)',
     'form.type_individual': 'حامل المشروع / فرد',
     'form.individual_warning': '⚠️ تنبيه: تم تحسين شارلوت للهياكل المسجلة. بالنسبة للأفراد، قد تكون النتائج محدودة.',
@@ -274,7 +284,8 @@ export const TRANSLATIONS: Record<Language, Translations> = {
     'results.error_title': 'عفواً!',
     'results.empty_title': 'مرحباً، أنا شارلوت!',
     'results.empty_desc': 'أنا مساعدتك الشخصية المخصصة للتمويل. املئي النموذج على اليسار، وسأبدأ فوراً في صيد الفرص لك.',
-    
+    'results.btn_demo': '🎲 عرض مثال',
+
     'results.no_api_title': 'الدماغ مفصول... 😴',
     'results.no_api_desc': 'عفواً! يبدو أن أحدهم نسي أن يعطيني مفاتيحي (API Key). لذا أنا في إجازة إجبارية. أعيدوا توصيلي إذا أردتم مني العمل!',
     'results.no_api_bypass': 'مجرد إلقاء نظرة (وضع تجريبي)',

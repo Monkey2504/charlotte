@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { ASBLProfile, Sector, SearchMode } from '../types';
 import { enrichProfileFromNumber } from '../services/geminiService';
@@ -9,12 +10,13 @@ import { useLanguage } from '../contexts/LanguageContext';
 interface ProfileFormProps {
   onSearch: (profile: ASBLProfile) => void;
   isLoading: boolean;
+  onLoadExample?: () => void;
 }
 
 const COOLDOWN_SECONDS = 30;
 type UserType = 'entity' | 'individual';
 
-const ProfileForm: React.FC<ProfileFormProps> = ({ onSearch, isLoading }) => {
+const ProfileForm: React.FC<ProfileFormProps> = ({ onSearch, isLoading, onLoadExample }) => {
   const { currentProfile, updateCurrentProfile } = useApp();
   const { t, language } = useLanguage();
   const [isEnriching, setIsEnriching] = useState(false);
@@ -48,6 +50,9 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSearch, isLoading }) => {
     setEnrichError(null);
     try {
         const enrichedData = await enrichProfileFromNumber(currentProfile.enterpriseNumber, language);
+        if (!enrichedData || Object.keys(enrichedData).length === 0) {
+             throw new Error("No data found");
+        }
         updateCurrentProfile(enrichedData);
     } catch (err) {
         setEnrichError(t('form.autofill_error'));
@@ -64,12 +69,25 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ onSearch, isLoading }) => {
 
   return (
     <Card className="border-t-4 border-t-violet-500 shadow-md">
-      <div className="mb-6">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <Building2 className="text-violet-600" size={24} />
-          {t('form.title')}
-        </h2>
-        <p className="text-slate-500 text-sm mt-2 leading-relaxed">{t('form.subtitle')}</p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+            <Building2 className="text-violet-600" size={24} />
+            {t('form.title')}
+          </h2>
+          <p className="text-slate-500 text-sm mt-2 leading-relaxed">{t('form.subtitle')}</p>
+        </div>
+        {onLoadExample && (
+          <button 
+            type="button"
+            onClick={onLoadExample}
+            className="flex items-center gap-1 text-[10px] font-bold text-violet-500 bg-violet-50 px-2 py-1 rounded-lg hover:bg-violet-100 transition-colors shrink-0"
+            title="Remplir avec un exemple"
+          >
+            <Sparkles size={12} />
+            {t('form.btn_example')}
+          </button>
+        )}
       </div>
 
       <div className="bg-slate-100 p-1 rounded-xl flex mb-6">

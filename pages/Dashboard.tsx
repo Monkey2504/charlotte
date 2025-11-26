@@ -1,10 +1,13 @@
+
 import React, { useEffect, useRef } from 'react';
 import ProfileForm from '../components/ProfileForm';
 import ResultsView from '../components/ResultsView';
 import { useGrantSearch } from '../hooks/useGrantSearch';
 import { AlertTriangle, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useApp } from '../contexts/AppContext';
 import { cn } from '../utils/styles';
+import { Sector } from '../types';
 
 const ThinkingProcess: React.FC<{ thoughts: string[] }> = ({ thoughts }) => {
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -72,9 +75,22 @@ const ThinkingProcess: React.FC<{ thoughts: string[] }> = ({ thoughts }) => {
 
 const Dashboard: React.FC = () => {
   const { state, currentResult, performSearch, thoughts } = useGrantSearch();
+  const { updateCurrentProfile } = useApp();
   const { t } = useLanguage();
 
   const isSearching = state.status === 'searching' || state.status === 'analyzing';
+
+  const handleLoadExample = () => {
+    updateCurrentProfile({
+      name: "Centre Culturel Horizon",
+      sector: Sector.CULTURE,
+      region: "Bruxelles-Capitale",
+      description: "ASBL active dans l'initiation artistique (théâtre, musique) pour les jeunes de quartiers défavorisés. Nous souhaitons lancer un festival de rue cet été pour favoriser la cohésion sociale et cherchons des subsides pour le matériel et les artistes.",
+      enterpriseNumber: "0456.789.123",
+      budget: "50k€ - 200k€",
+      website: "https://www.horizon-culture.be"
+    });
+  };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -83,7 +99,8 @@ const Dashboard: React.FC = () => {
         <div className="sticky top-8 space-y-4">
            <ProfileForm 
              onSearch={performSearch} 
-             isLoading={isSearching} 
+             isLoading={isSearching}
+             onLoadExample={handleLoadExample}
            />
         </div>
       </div>
@@ -103,7 +120,10 @@ const Dashboard: React.FC = () => {
               </p>
            </div>
         ) : (
-           <ResultsView result={currentResult} />
+           <ResultsView 
+             result={currentResult} 
+             onLoadExample={handleLoadExample} 
+           />
         )}
       </div>
     </div>
