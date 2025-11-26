@@ -3,6 +3,12 @@ export type Language = 'fr' | 'nl' | 'de' | 'ar';
 
 export type SearchMode = 'fast' | 'deep';
 
+export enum ProfileStatus {
+  BASE = 'base',
+  ENRICHED = 'enriched',
+  ERROR = 'error'
+}
+
 export enum Sector {
   SOCIAL = 'Action Sociale',
   CULTURE = 'Culture & Arts',
@@ -31,6 +37,7 @@ export interface ASBLProfile {
   description: string;
   budget: string;
   searchMode?: SearchMode;
+  status?: ProfileStatus;
 }
 
 export interface GroundingChunk {
